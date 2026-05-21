@@ -123,6 +123,8 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 [data-testid="stFileUploader"] section button *{
     color:#fff!important;
     -webkit-text-fill-color:#fff!important}
+[data-testid="stFileUploader"] section button:first-of-type{
+    display:none!important}
 
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
