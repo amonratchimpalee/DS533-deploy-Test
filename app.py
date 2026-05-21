@@ -332,9 +332,9 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
     </div>
   </div>
   <div class='fi-box'>
-    <div class='fi-label'>ผลตาม Saraswathi (2007) · Length / Bizygomatic Width</div>
+    
     <div class='fi-val'>{fi_label}</div>
-    <div class='badge' style='margin-top:.4rem'>📍 MediaPipe Face Mesh 468-point</div>
+    <div class='badge' style='margin-top:.4rem'></div>
   </div>
   <div class='hair-box'>
     <div class='hair-title'>💇 ทรงผมที่แนะนำ</div>
