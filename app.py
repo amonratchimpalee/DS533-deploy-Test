@@ -120,7 +120,9 @@ html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-seri
 [data-testid="stFileUploaderDropzoneInstructions"] span,
 [data-testid="stFileUploaderDropzoneInstructions"] p{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-[data-testid="stFileChipName"]{
+[data-testid="stFileChipName"],
+[data-testid="stFileChipName"] *,
+.st-emotion-cache-1t3cokr{
     color:rgba(255,255,255,.9)!important;
     -webkit-text-fill-color:rgba(255,255,255,.9)!important}
 [data-testid="stFileUploader"] section button{
