@@ -184,7 +184,7 @@ def predict_face_shape(img_pil):
     # ── MediaPipe Face Landmarker (Tasks API) ──
     from mediapipe.tasks.python import vision as mp_vision
     img_rgb_c = np.ascontiguousarray(img_rgb.astype(np.uint8))
-    mp_image  = mp_vision.Image(image_format=mp_vision.ImageFormat.SRGB, data=img_rgb_c)
+    mp_image  = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb_c)
     results   = face_mesh.detect(mp_image)
 
     if results.face_landmarks:
@@ -231,7 +231,7 @@ if uploaded_file:
     with col1:
         with st.spinner("🔍 กำลังวิเคราะห์..."):
             face_shape, confidence, ratiog, score, img_out, face_detected = predict_face_shape(img_pil)
-        st.image(img_out, use_container_width=True)
+        st.image(img_out, width='stretch')
 
     with col2:
         if not face_detected:
