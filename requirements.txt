@@ -1,8 +1,9 @@
 streamlit
 opencv-python-headless
 numpy
-tensorflow-cpu
+tensorflow-cpu==2.15.0
 mediapipe
 Pillow
 matplotlib
 gdown
+ 
