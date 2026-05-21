@@ -137,7 +137,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -173,7 +173,16 @@ def draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, color_bgr):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, cw, 1, cv2.LINE_AA)
 
 
+def fix_orientation(img_pil):
+    """แก้ EXIF orientation สำหรับภาพจากโทรศัพท์"""
+    try:
+        from PIL import ImageOps
+        return ImageOps.exif_transpose(img_pil)
+    except Exception:
+        return img_pil
+
 def predict_face_shape(img_pil):
+    img_pil = fix_orientation(img_pil)
     img_rgb = np.array(img_pil.convert("RGB"))
     img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
     ih, iw  = img_rgb.shape[:2]
