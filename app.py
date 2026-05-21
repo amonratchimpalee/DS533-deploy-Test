@@ -136,8 +136,8 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 
 st.markdown("""
 <div class="hero-wrap">
-  <div class="hero-title">✨ Face Shape Classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
+  <div class="hero-title">✨ Face Shape classification</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -197,11 +197,19 @@ def predict_face_shape(img_pil):
         lm    = results.face_landmarks[0]
         c_bgr = tuple(shape_info[face_shape]['color'][::-1])
 
-        tr   = get_pixel(lm, LANDMARK_TRICHION, ih, iw)
         gn   = get_pixel(lm, LANDMARK_GNATHION, ih, iw)
         zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,  ih, iw)
         zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT, ih, iw)
-        tr   = (max(0, min(tr[0], iw-1)), max(0, min(tr[1], ih-1)))
+
+        # ── trichion: ใช้ topmost y ของ face bounding box แทน landmark #10 ──
+        # หา y น้อยสุดจากทุก landmark = topmost point ของใบหน้าจริง
+        all_y = [int(p.y * ih) for p in lm]
+        all_x = [int(p.x * iw) for p in lm]
+        top_y = max(0, min(all_y))
+        # x ของ trichion = midpoint ของใบหน้า
+        mid_face_x = (zy_l[0] + zy_r[0]) // 2
+        tr = (mid_face_x, top_y)
+
         gn   = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
 
         draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, c_bgr)
