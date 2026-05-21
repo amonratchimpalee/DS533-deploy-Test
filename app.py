@@ -137,7 +137,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape Classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
