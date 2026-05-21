@@ -119,14 +119,10 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     border:1px solid rgba(255,255,255,.2)!important;
     border-radius:8px!important;
     color:#fff!important;
-    -webkit-text-fill-color:#fff!important;
-    position:relative!important;
-    z-index:1!important}
-[data-testid="stFileUploader"] section button:first-child{
-    position:absolute!important;
-    opacity:0!important;
-    pointer-events:none!important;
-    z-index:0!important}
+    -webkit-text-fill-color:#fff!important}
+[data-testid="stFileUploader"] section button *{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important}
 
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
@@ -151,8 +147,6 @@ face_shape_model, face_mesh = load_models()
 # ---- Consent Gate ----
 if "consent_given" not in st.session_state:
     st.session_state.consent_given = False
-if "show_notice" not in st.session_state:
-    st.session_state.show_notice = False
 
 CONSENT_HTML = """
 <div style='background:rgba(220,150,20,.08);border:1px solid rgba(220,150,20,.3);
@@ -181,37 +175,17 @@ CONSENT_HTML = """
 """
 
 if not st.session_state.consent_given:
-
-    if not st.session_state.show_notice:
-        st.markdown("""
-<div style='background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.18);
-     border-radius:18px;padding:2rem;text-align:center;margin-bottom:1rem'>
-  <div style='font-size:2rem;margin-bottom:.5rem'>📸</div>
-  <div style='color:rgba(255,255,255,.7);font-size:.95rem;font-weight:500'>คลิกเพื่ออัปโหลดภาพใบหน้า</div>
-  <div style='color:rgba(255,255,255,.3);font-size:.78rem;margin-top:.3rem'>JPG, JPEG, PNG</div>
-</div>
-""", unsafe_allow_html=True)
-        col_l, col_c, col_r = st.columns([1, 2, 1])
-        with col_c:
-            if st.button("📂 เลือกภาพ", use_container_width=True):
-                st.session_state.show_notice = True
-                st.rerun()
-
-    else:
+    with st.container():
         st.markdown(CONSENT_HTML, unsafe_allow_html=True)
         consent = st.checkbox(
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
         )
-        col_l, col_c, col_r = st.columns([1, 2, 1])
-        with col_c:
-            if st.button("ยืนยันและเลือกภาพ →", type="primary",
-                         use_container_width=True, disabled=not consent):
-                st.session_state.consent_given = True
-                st.rerun()
-        if st.button("← ยกเลิก"):
-            st.session_state.show_notice = False
-            st.rerun()
-
+        if consent:
+            col_l, col_c, col_r = st.columns([1, 2, 1])
+            with col_c:
+                if st.button("ยืนยันและดำเนินการต่อ →", type="primary", use_container_width=True):
+                    st.session_state.consent_given = True
+                    st.rerun()
     st.stop()
 
 # ---- File Uploader ----
