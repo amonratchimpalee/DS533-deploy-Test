@@ -38,7 +38,7 @@ def load_models():
     base_options = mp_python.BaseOptions(model_asset_path=model_path)
     options = mp_vision.FaceLandmarkerOptions(
         base_options=base_options,
-        num_faces=1,
+        num_faces=10,
         min_face_detection_confidence=0.5,
         min_face_presence_confidence=0.5,
         min_tracking_confidence=0.5,
@@ -137,7 +137,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -146,10 +146,10 @@ face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
-  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ควรใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
+  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
   แสงสว่างเพียงพอ &nbsp;·&nbsp;
-  ไม่สวมหมวก &nbsp;·&nbsp;
-  
+  ไม่สวมแว่น &nbsp;·&nbsp;
+  มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
 </div>
 """, unsafe_allow_html=True)
 os.makedirs("saved_results", exist_ok=True)
@@ -210,6 +210,8 @@ def predict_face_shape(img_pil):
     results   = face_mesh.detect(mp_image)
 
     if results.face_landmarks:
+        if len(results.face_landmarks) > 1:
+            return face_shape, confidence, 0.0, 0.0, img_out, "multiple"
         face_detected = True
         lm    = results.face_landmarks[0]
         c_bgr = tuple(shape_info[face_shape]['color'][::-1])
@@ -257,7 +259,9 @@ if uploaded_file:
         st.image(img_out, use_container_width=True)
 
     with col2:
-        if not face_detected:
+        if face_detected == "multiple":
+            st.error("❌ พบหลายใบหน้าในภาพ กรุณาอัปโหลดภาพที่มีใบหน้าเดียว")
+        elif not face_detected:
             st.error("❌ ไม่พบใบหน้าในภาพ กรุณาลองภาพอื่น")
         else:
             info      = shape_info[face_shape]
