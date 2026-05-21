@@ -315,4 +315,4 @@ if uploaded_file:
             )
             components.html(card_html, height=470, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by <b>InceptionResNetV2</b> · <b>OpenCV</b></div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Powered by <b> 4 angie</b></div>", unsafe_allow_html=True)
