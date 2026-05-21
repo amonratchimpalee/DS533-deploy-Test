@@ -147,14 +147,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 face_shape_model, face_mesh = load_models()
-# ---- Consent Popup ----
+
+# ---- Consent Gate ----
 if "consent_given" not in st.session_state:
     st.session_state.consent_given = False
 
 if not st.session_state.consent_given:
     with st.container():
-    
-       st.markdown("""
+        st.markdown("""
 <div style='background:rgba(220,150,20,.08);border:1px solid rgba(220,150,20,.3);
      border-radius:18px;padding:1.5rem;margin-bottom:1rem'>
   <p style='color:rgba(220,150,20,.9);font-size:.75rem;text-transform:uppercase;
@@ -179,7 +179,6 @@ if not st.session_state.consent_given:
   </p>
 </div>
 """, unsafe_allow_html=True)
-        """, unsafe_allow_html=True)
 
         consent = st.checkbox(
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
@@ -188,9 +187,9 @@ if not st.session_state.consent_given:
             if st.button("ยืนยันและดำเนินการต่อ →", type="primary"):
                 st.session_state.consent_given = True
                 st.rerun()
-    st.stop()  # หยุดไม่ให้แสดง uploader จนกว่าจะยินยอม
+    st.stop()
 
-# ---- File Uploader (แสดงเมื่อยินยอมแล้วเท่านั้น) ----
+# ---- File Uploader ----
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
