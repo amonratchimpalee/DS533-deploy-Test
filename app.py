@@ -153,17 +153,32 @@ if "consent_given" not in st.session_state:
 
 if not st.session_state.consent_given:
     with st.container():
-        st.markdown("""
-        <div style='background:rgba(220,150,20,.08);border:1px solid rgba(220,150,20,.3);
-             border-radius:18px;padding:1.5rem;margin-bottom:1rem'>
-          <p style='color:rgba(220,150,20,.9);font-size:.75rem;text-transform:uppercase;
-             letter-spacing:.1em;margin-bottom:.5rem'>🛡️ นโยบายความเป็นส่วนตัว</p>
-          <p style='color:rgba(255,255,255,.7);font-size:.9rem;line-height:1.7;margin-bottom:.75rem'>
-            ภาพใบหน้าของท่านเป็น <b>ข้อมูลอ่อนไหว</b> ตาม PDPA มาตรา 26<br>
-            ระบบจะประมวลผลภาพเพื่อวิเคราะห์รูปทรงใบหน้าเท่านั้น<br>
-            ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; ✓ ลบออกหลังวิเคราะห์
-          </p>
-        </div>
+    
+       st.markdown("""
+<div style='background:rgba(220,150,20,.08);border:1px solid rgba(220,150,20,.3);
+     border-radius:18px;padding:1.5rem;margin-bottom:1rem'>
+  <p style='color:rgba(220,150,20,.9);font-size:.75rem;text-transform:uppercase;
+     letter-spacing:.1em;margin-bottom:.75rem'>🛡️ นโยบายความเป็นส่วนตัว · PDPA</p>
+
+  <p style='color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;margin-bottom:.4rem'>
+    ข้อมูลที่เราประมวลผล</p>
+  <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.7;margin-bottom:.5rem'>
+    ภาพถ่ายใบหน้าของท่านเป็น <b style='color:rgba(255,200,80,.8)'>ข้อมูลอ่อนไหว</b>
+    ตาม PDPA มาตรา 26 ประมวลผลในหน่วยความจำชั่วคราวเท่านั้น<br>
+    ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; ✓ ลบออกหลังวิเคราะห์
+  </p>
+
+  <p style='color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;
+     margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์การประมวลผล</p>
+  <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.9'>
+    1️⃣ <b>วิเคราะห์รูปทรงใบหน้า</b> — จำแนก 5 ประเภท (Oval, Square, Round, Heart, Oblong)
+    ด้วยโมเดล AI InceptionResNetV2<br>
+    2️⃣ <b>ตรวจจับจุดอ้างอิงใบหน้า</b> — ใช้ MediaPipe คำนวณ Facial Index
+    และ Golden Ratio Score<br>
+    3️⃣ <b>แสดงผลคำแนะนำ</b> — ทรงผมและแว่นตาที่เหมาะกับรูปทรงใบหน้าของท่าน
+  </p>
+</div>
+""", unsafe_allow_html=True)
         """, unsafe_allow_html=True)
 
         consent = st.checkbox(
