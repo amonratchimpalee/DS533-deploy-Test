@@ -137,7 +137,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -146,10 +146,10 @@ face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
-  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
+  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ควรใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
   แสงสว่างเพียงพอ &nbsp;·&nbsp;
-  ไม่สวมแว่น &nbsp;·&nbsp;
-  มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
+  ไม่สวมหมวก &nbsp;·&nbsp;
+  
 </div>
 """, unsafe_allow_html=True)
 os.makedirs("saved_results", exist_ok=True)
