@@ -124,8 +124,8 @@ button[data-testid="baseButton-secondary"]:has(~ [data-testid="stFileUploaderFil
 
 st.markdown("""
 <div class="hero-wrap">
-  <div class="hero-title">✨ Face Shape AI</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย AI · MediaPipe Face Mesh</div>
+  <div class="hero-title">✨ Face Shape classification </div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย· MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
