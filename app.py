@@ -114,6 +114,8 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     background:rgba(220,150,20,.05)!important}
 [data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
+[data-testid="stFileUploaderFileName"],[data-testid="stFileUploaderFileName"] *{
+    color:rgba(255,255,255,.9)!important;-webkit-text-fill-color:rgba(255,255,255,.9)!important;font-size:.9rem!important}
 [data-testid="stFileUploader"] section button{
     background:rgba(255,255,255,.08)!important;
     border:1px solid rgba(255,255,255,.2)!important;
