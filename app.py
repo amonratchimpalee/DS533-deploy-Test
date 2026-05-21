@@ -2,15 +2,18 @@ import streamlit as st
 import cv2
 import numpy as np
 import tensorflow as tf
+import keras
 import mediapipe as mp
 import os
 from PIL import Image
 import gdown
-import keras
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision
+from mediapipe.tasks.python.vision import FaceLandmarker, FaceLandmarkerOptions, RunningMode
 
 # -----------------------------
-# Register custom preprocess function (required for model deserialization)
+# Register custom preprocess function
 # -----------------------------
 @keras.saving.register_keras_serializable()
 def preprocess(x):
@@ -23,26 +26,31 @@ def preprocess(x):
 MODEL_URL = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
 MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
+# MediaPipe face landmarker model
+FACE_LANDMARKER_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+FACE_LANDMARKER_LOCAL = "face_landmarker.task"
+
 # -----------------------------
 # Caching model load
 # -----------------------------
 @st.cache_resource
-def load_model():
+def load_models():
+    # Load face shape model
     if not os.path.exists(MODEL_LOCAL):
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
-    return tf.keras.models.load_model(
+    face_model = tf.keras.models.load_model(
         MODEL_LOCAL,
         custom_objects={'preprocess': preprocess}
     )
 
-face_shape_model = load_model()
+    # Download mediapipe task model
+    if not os.path.exists(FACE_LANDMARKER_LOCAL):
+        import urllib.request
+        urllib.request.urlretrieve(FACE_LANDMARKER_URL, FACE_LANDMARKER_LOCAL)
 
-# -----------------------------
-# MediaPipe setup
-# -----------------------------
-mp_face_mesh = mp.solutions.face_mesh
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
+    return face_model
+
+face_shape_model = load_models()
 
 # -----------------------------
 # Class labels & hairstyle recommendations
@@ -62,7 +70,6 @@ hairstyle_recommendations = {
 st.set_page_config(page_title="Face Shape Detector", layout="centered")
 st.markdown("""
 <style>
-body {background: linear-gradient(to right, #e0f7fa, #fff9c4);}
 h1 {text-align:center; color:#004d40;}
 .stButton>button {background-color:#00796b; color:white; border-radius:8px; font-weight:bold;}
 </style>
@@ -88,63 +95,55 @@ def predict_face_shape(img_pil):
     face_shape = classes[idx]
     confidence = pred[0][idx] * 100
 
-    # ----- MediaPipe landmark detection -----
+    # ----- MediaPipe new API landmark detection -----
     ratiog = 0
     score = 0
     face_detected = False
 
-    with mp_face_mesh.FaceMesh(
-        static_image_mode=True,
-        max_num_faces=1,
-        refine_landmarks=True,
-        min_detection_confidence=0.5
-    ) as face_mesh:
-        results = face_mesh.process(img)
+    options = FaceLandmarkerOptions(
+        base_options=mp_python.BaseOptions(model_asset_path=FACE_LANDMARKER_LOCAL),
+        running_mode=RunningMode.IMAGE,
+        num_faces=1
+    )
 
-        if results.multi_face_landmarks:
+    with FaceLandmarker.create_from_options(options) as landmarker:
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img)
+        result = landmarker.detect(mp_image)
+
+        if result.face_landmarks:
             face_detected = True
             h, w = img.shape[:2]
+            lm = result.face_landmarks[0]
 
-            for face_landmarks in results.multi_face_landmarks:
-                mp_drawing.draw_landmarks(
-                    image=img_landmarks,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_TESSELATION,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_tesselation_style()
-                )
-                mp_drawing.draw_landmarks(
-                    image=img_landmarks,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_CONTOURS,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style()
-                )
+            # Draw landmarks
+            for landmark in lm:
+                x = int(landmark.x * w)
+                y = int(landmark.y * h)
+                cv2.circle(img_landmarks, (x, y), 1, (0, 255, 0), -1)
 
-                lm = face_landmarks.landmark
-                forehead_y = lm[10].y * h
-                chin_y = lm[152].y * h
-                left_x = lm[234].x * w
-                right_x = lm[454].x * w
+            # Golden ratio
+            forehead_y = lm[10].y * h
+            chin_y = lm[152].y * h
+            left_x = lm[234].x * w
+            right_x = lm[454].x * w
 
-                face_height = abs(chin_y - forehead_y)
-                face_width = abs(right_x - left_x)
+            face_height = abs(chin_y - forehead_y)
+            face_width = abs(right_x - left_x)
 
-                if face_width > 0:
-                    ratiog = face_height / face_width
-                    score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+            if face_width > 0:
+                ratiog = face_height / face_width
+                score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
     if not face_detected:
         return "No face detected", None
 
     recommend = hairstyle_recommendations[face_shape]
-
-    result = (
+    result_text = (
         f"Face Shape: {face_shape} ({confidence:.2f}%)\n"
         f"Hairstyle: {recommend}\n"
         f"Golden Ratio: {ratiog:.2f} | Score: {score:.2f}%"
     )
-    return result, img_landmarks
+    return result_text, img_landmarks
 
 
 if uploaded_file is not None:
