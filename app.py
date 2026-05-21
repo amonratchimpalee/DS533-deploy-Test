@@ -343,7 +343,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 </div>
 </body></html>"""
 
-            components.html(card_html, height=520, scrolling=False)
+            components.html(card_html, height=620, scrolling=False)
 
 st.markdown("<div class='footer'>Powered by <b>4 angie</b> · MediaPipe Face Mesh · อ้างอิง: Saraswathi (2007) Eur J Anat 11(3):177-180</div>",
             unsafe_allow_html=True)
