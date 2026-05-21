@@ -6,12 +6,13 @@ import mediapipe as mp
 import os
 from PIL import Image
 import gdown
+import keras
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 # -----------------------------
 # Register custom preprocess function (required for model deserialization)
 # -----------------------------
-@tf.keras.saving.register_keras_serializable()
+@keras.saving.register_keras_serializable()
 def preprocess(x):
     x = tf.cast(x, tf.float32)
     return preprocess_input(x)
