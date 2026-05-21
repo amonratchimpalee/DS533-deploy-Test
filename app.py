@@ -76,16 +76,19 @@ st.set_page_config(page_title="Face Shape AI ✨", page_icon="✨", layout="cent
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+/* ── background ── */
 [data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>div,.main,.block-container{background:transparent!important}
 [data-testid="stAppViewContainer"]{
     background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(200,130,0,.22) 0%,transparent 60%),
                radial-gradient(ellipse 60% 40% at 80% 110%,rgba(180,80,0,.18) 0%,transparent 60%),
                #0d0a04!important;min-height:100vh}
-[data-testid="stHeader"]{background:transparent!important}
-[data-testid="stToolbar"]{background:transparent!important}
+[data-testid="stHeader"],[data-testid="stToolbar"]{background:transparent!important}
 [data-testid="stDecoration"]{display:none!important}
 .main .block-container{padding-top:2.5rem!important;max-width:780px}
 html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM Sans',sans-serif!important;color:rgba(255,255,255,.85)}
+
+/* ── hero ── */
 .hero-wrap{text-align:center;margin-bottom:1.8rem}
 .hero-title{font-family:'Playfair Display',serif!important;font-size:clamp(2rem,6vw,3.2rem);font-weight:900!important;
     background:linear-gradient(135deg,#fff 0%,#ffe8a0 45%,#e8860a 100%);
@@ -94,25 +97,37 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 .hero-sub{color:rgba(255,255,255,.3)!important;font-size:.85rem;letter-spacing:.12em;
     text-transform:uppercase;-webkit-text-fill-color:rgba(255,255,255,.3)!important}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(220,150,20,.6),rgba(255,255,255,.08),transparent);margin:0 0 2rem}
-[data-testid="stFileUploaderDropzone"],[data-testid="stFileUploader"] section{
-    background:rgba(255,255,255,.04)!important;border:1.5px dashed rgba(255,255,255,.18)!important;border-radius:18px!important}
-[data-testid="stFileUploaderDropzone"]:hover,[data-testid="stFileUploader"] section:hover{
-    border-color:rgba(220,150,20,.6)!important;background:rgba(220,150,20,.05)!important}
-[data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
-    color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
+
+/* ── file uploader ── */
 [data-testid="stFileUploader"] label,[data-testid="stFileUploader"] label *{
     color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
-[data-testid="stFileUploader"] button{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;
-    border-radius:8px!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
-[data-testid="stFileUploader"] section{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:.75rem 1rem!important}
-[data-testid="stFileUploaderDropzoneInstructions"]{flex:1!important}
-[data-testid="stFileUploader"] section > button{margin-left:auto!important;flex-shrink:0!important}
-[data-testid="stFileUploader"] section > button:first-of-type{display:none!important}
+[data-testid="stFileUploader"] section{
+    background:rgba(255,255,255,.04)!important;
+    border:1.5px dashed rgba(255,255,255,.18)!important;
+    border-radius:18px!important;
+    padding:.75rem 1.2rem!important}
+[data-testid="stFileUploader"] section:hover{
+    border-color:rgba(220,150,20,.6)!important;
+    background:rgba(220,150,20,.05)!important}
+[data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
+    color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
+/* ปุ่ม Browse files */
+[data-testid="stFileUploader"] section button{
+    background:rgba(255,255,255,.08)!important;
+    border:1px solid rgba(255,255,255,.2)!important;
+    border-radius:8px!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important}
+/* ซ่อนเฉพาะ icon-only button (ตัวแรก ไม่มี text) */
+[data-testid="stFileUploader"] section button:not(:has(p)){display:none!important}
 
+/* ── image / spinner / alert ── */
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
 [data-testid="stAlert"]{background:rgba(233,30,99,.1)!important;border:1px solid rgba(233,30,99,.3)!important;border-radius:14px!important}
 [data-testid="stAlert"] *{color:#ff6b9d!important;-webkit-text-fill-color:#ff6b9d!important}
+
+/* ── footer ── */
 .footer{text-align:center;padding:2.5rem 0 1rem;font-size:.75rem;color:rgba(255,255,255,.15)!important;
     -webkit-text-fill-color:rgba(255,255,255,.15)!important;letter-spacing:.06em}
 .footer b{color:rgba(220,160,20,.6)!important;-webkit-text-fill-color:rgba(220,160,20,.6)!important}
@@ -122,7 +137,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -230,7 +245,6 @@ if uploaded_file:
             ratio_str = f"{ratiog:.2f}"
             score_str = f"{score:.0f}"
 
-            # ตาม Saraswathi (2007): Normal = 1.6, Long > 1.6, Short < 1.6
             if ratiog == 1.6:
                 fi_label = "ปกติ — Normal (= 1.6)"
                 fi_color = "#7fff7f"
@@ -315,5 +329,5 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 
             components.html(card_html, height=620, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by <b>4 angie</b> </div>",
+st.markdown("<div class='footer'>Powered by <b>4 angie</b></div>",
             unsafe_allow_html=True)
