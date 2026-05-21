@@ -178,7 +178,7 @@ if not st.session_state.consent_given:
     3️⃣ <b>แสดงผลคำแนะนำ</b> — ทรงผมและแว่นตาที่เหมาะกับรูปทรงใบหน้าของท่าน
   </p>
 </div>
-""", unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         consent = st.checkbox(
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
