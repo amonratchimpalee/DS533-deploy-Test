@@ -201,14 +201,14 @@ def predict_face_shape(img_pil):
         zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,  ih, iw)
         zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT, ih, iw)
 
-        # ── trichion: ใช้ topmost y ของ face bounding box แทน landmark #10 ──
-        # หา y น้อยสุดจากทุก landmark = topmost point ของใบหน้าจริง
+        # ── trichion: topmost landmark + offset ขึ้น ~12% ของความสูงใบหน้า ──
         all_y = [int(p.y * ih) for p in lm]
-        all_x = [int(p.x * iw) for p in lm]
         top_y = max(0, min(all_y))
-        # x ของ trichion = midpoint ของใบหน้า
+        gn_y  = gn[1]
+        face_h_est = gn_y - top_y
+        hairline_y = max(0, top_y - int(face_h_est * 0.12))
         mid_face_x = (zy_l[0] + zy_r[0]) // 2
-        tr = (mid_face_x, top_y)
+        tr = (mid_face_x, hairline_y)
 
         gn   = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
 
