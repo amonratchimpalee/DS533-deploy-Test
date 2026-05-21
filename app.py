@@ -15,8 +15,8 @@ def preprocess(x):
     x = tf.cast(x, tf.float32)
     return preprocess_input(x)
 
-MODEL_URL   = "https://drive.google.com/file/d/1KAma7fTc6iMubXFEyLf2fI1ZD7v4b-ha/view?usp=drive_link"
-MODEL_LOCAL = "best_ResNet50V2.keras"
+MODEL_URL   = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
+MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
 @st.cache_resource
 def load_models():
@@ -152,9 +152,7 @@ face_shape_model, face_mesh = load_models()
 if "consent_given" not in st.session_state:
     st.session_state.consent_given = False
 
-if not st.session_state.consent_given:
-    with st.container():
-        st.markdown("""
+CONSENT_HTML = """
 <div style='background:rgba(220,150,20,.08);border:1px solid rgba(220,150,20,.3);
      border-radius:18px;padding:1.5rem;margin-bottom:1rem'>
   <p style='color:rgba(220,150,20,.9);font-size:.75rem;text-transform:uppercase;
@@ -165,25 +163,28 @@ if not st.session_state.consent_given:
   <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.7;margin-bottom:.5rem'>
     ภาพถ่ายใบหน้าของท่านเป็น <b style='color:rgba(255,200,80,.8)'>ข้อมูลอ่อนไหว</b>
     ตาม PDPA มาตรา 26 ประมวลผลในหน่วยความจำชั่วคราวเท่านั้น<br>
-    ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; 
+    ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; ✓ ลบออกหลังวิเคราะห์
   </p>
 
   <p style='color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;
-     margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์ของการประมวลผล</p>
+     margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์การประมวลผล</p>
   <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.9'>
     1️⃣ <b>วิเคราะห์รูปทรงใบหน้า</b> — จำแนก 5 ประเภท (Oval, Square, Round, Heart, Oblong)
-    ด้วยโมเดล RestNet50V2<br>
+    ด้วยโมเดล ResNet50V2<br>
     2️⃣ <b>ตรวจจับจุดอ้างอิงใบหน้า</b> — ใช้ MediaPipe คำนวณ Facial Index
     และ Golden Ratio Score<br>
     3️⃣ <b>แสดงผลคำแนะนำ</b> — ทรงผมและแว่นตาที่เหมาะกับรูปทรงใบหน้าของท่าน
   </p>
 </div>
-        """, unsafe_allow_html=True)
+"""
 
+if not st.session_state.consent_given:
+    with st.container():
+        st.markdown(CONSENT_HTML, unsafe_allow_html=True)
         consent = st.checkbox(
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
         )
-     if consent:
+        if consent:
             col_l, col_c, col_r = st.columns([1, 2, 1])
             with col_c:
                 if st.button("ยืนยันและดำเนินการต่อ →", type="primary", use_container_width=True):
