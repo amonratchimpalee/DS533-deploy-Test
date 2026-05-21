@@ -1,9 +1,7 @@
 streamlit
+tensorflow
+keras
 opencv-python-headless
 numpy
-tensorflow-cpu==2.20.0
-keras
-Pillow
+pillow
 gdown
-mediapipe
-dlib
