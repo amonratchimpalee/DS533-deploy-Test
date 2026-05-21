@@ -42,7 +42,6 @@ st.subheader("วิเคราะห์รูปใบหน้าและแ
 
 face_shape_model, face_cascade = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
-os.makedirs("saved_results", exist_ok=True)
 
 # ---------- Mediapipe FaceMesh ----------
 face_mesh = mp.solutions.face_mesh.FaceMesh(
