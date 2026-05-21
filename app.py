@@ -23,6 +23,11 @@ def load_models():
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(MODEL_LOCAL, custom_objects={'preprocess': preprocess})
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+    # warm-up: สร้าง graph ครั้งแรกตอนโหลด ไม่ใช่ตอนกด predict
+    dummy = np.zeros((1, 299, 299, 3), dtype=np.float32)
+    face_model.predict(dummy, verbose=0)
+
     return face_model, face_cascade
 
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
@@ -178,16 +183,24 @@ uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบห�
 os.makedirs("saved_results", exist_ok=True)
 
 def predict_face_shape(img_pil):
+    # resize ภาพใหญ่ลงก่อน เพื่อให้ Haar Cascade และ skin detection เร็วขึ้น
+    MAX_DIM = 640
+    w0, h0 = img_pil.size
+    scale  = min(MAX_DIM / max(w0, h0), 1.0)
+    if scale < 1.0:
+        img_pil = img_pil.resize((int(w0*scale), int(h0*scale)), Image.LANCZOS)
+
     img     = np.array(img_pil.convert("RGB"))
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     gray    = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     img_out = img.copy()
 
-    img_resized = cv2.resize(img_bgr, (299, 299))
-    pred        = face_shape_model.predict(np.expand_dims(img_resized, 0), verbose=0)
-    idx         = np.argmax(pred)
-    face_shape  = classes[idx]
-    confidence  = float(pred[0][idx]) * 100
+    # ใช้ __call__ แทน .predict() เร็วกว่ามากสำหรับภาพเดียว
+    inp        = tf.constant(cv2.resize(img_bgr, (299, 299))[None], dtype=tf.float32)
+    pred       = face_shape_model(inp, training=False).numpy()
+    idx        = np.argmax(pred)
+    face_shape = classes[idx]
+    confidence = float(pred[0][idx]) * 100
 
     ratiog, score, face_detected = 0.0, 0.0, False
 
