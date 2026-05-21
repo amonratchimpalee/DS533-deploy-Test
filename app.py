@@ -207,9 +207,11 @@ def predict_face_shape(img_pil):
         ih, iw = img.shape[:2]
 
         # ขยาย bounding box ให้ครอบคลุม tr (หน้าผาก) และ gn (คาง)
-        pad_top    = int(h * 0.3)
-        pad_bottom = int(h * 0.15)
-        pad_side   = int(w * 0.05)
+        # pad_top สูงขึ้นเพื่อให้ถึง trichion (ยอดหน้าผาก)
+        # pad_bottom ลงมากขึ้นเพื่อให้ถึง gnathion (ปลายคาง)
+        pad_top    = int(h * 0.55)
+        pad_bottom = int(h * 0.35)
+        pad_side   = int(w * 0.08)
         y1 = max(0, y - pad_top)
         y2 = min(ih, y + h + pad_bottom)
         x1 = max(0, x - pad_side)
@@ -221,7 +223,7 @@ def predict_face_shape(img_pil):
         ycrcb     = cv2.cvtColor(face_crop, cv2.COLOR_RGB2YCrCb)
         skin_mask = cv2.inRange(ycrcb, (0, 133, 77), (255, 173, 127))
         skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE,
-                                     np.ones((7,7), np.uint8))
+                                     np.ones((9,9), np.uint8))
         contours, _ = cv2.findContours(skin_mask, cv2.RETR_EXTERNAL,
                                         cv2.CHAIN_APPROX_SIMPLE)
 
