@@ -144,6 +144,14 @@ st.markdown("""
 
 face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
+st.markdown("""
+<div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
+  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
+  แสงสว่างเพียงพอ &nbsp;·&nbsp;
+  ไม่สวมแว่น &nbsp;·&nbsp;
+  มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
+</div>
+""", unsafe_allow_html=True)
 os.makedirs("saved_results", exist_ok=True)
 
 
