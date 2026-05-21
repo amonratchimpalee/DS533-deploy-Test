@@ -183,12 +183,12 @@ if not st.session_state.consent_given:
         consent = st.checkbox(
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
         )
-        if consent:
+     if consent:
             col_l, col_c, col_r = st.columns([1, 2, 1])
-with col_c:
-    if st.button("ยืนยันและดำเนินการต่อ →", type="primary", use_container_width=True):
-                st.session_state.consent_given = True
-                st.rerun()
+            with col_c:
+                if st.button("ยืนยันและดำเนินการต่อ →", type="primary", use_container_width=True):
+                    st.session_state.consent_given = True
+                    st.rerun()
     st.stop()
 
 # ---- File Uploader ----
