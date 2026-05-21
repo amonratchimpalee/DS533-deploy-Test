@@ -136,8 +136,8 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 
 st.markdown("""
 <div class="hero-wrap">
-  <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผม </div>
+  <div class="hero-title">✨ Face Shape Classification</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -316,9 +316,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
     </div>
   </div>
   <div class='fi-box'>
-    <div class='fi-label'>Saraswathi (2007) · Length / Bizygomatic Width</div>
     <div class='fi-val'>{fi_label}</div>
-    <div class='badge'>📍 MediaPipe Face Mesh 468-point</div>
   </div>
   <div class='hair-box'>
     <div class='hair-title'>💇 ทรงผมที่แนะนำ</div>
