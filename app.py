@@ -23,11 +23,6 @@ def load_models():
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(MODEL_LOCAL, custom_objects={'preprocess': preprocess})
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-    # warm-up: สร้าง graph ครั้งแรกตอนโหลด ไม่ใช่ตอนกด predict
-    dummy = np.zeros((1, 299, 299, 3), dtype=np.float32)
-    face_model.predict(dummy, verbose=0)
-
     return face_model, face_cascade
 
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
@@ -183,24 +178,16 @@ uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบห�
 os.makedirs("saved_results", exist_ok=True)
 
 def predict_face_shape(img_pil):
-    # resize ภาพใหญ่ลงก่อน เพื่อให้ Haar Cascade และ skin detection เร็วขึ้น
-    MAX_DIM = 640
-    w0, h0 = img_pil.size
-    scale  = min(MAX_DIM / max(w0, h0), 1.0)
-    if scale < 1.0:
-        img_pil = img_pil.resize((int(w0*scale), int(h0*scale)), Image.LANCZOS)
-
     img     = np.array(img_pil.convert("RGB"))
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     gray    = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     img_out = img.copy()
 
-    # ใช้ __call__ แทน .predict() เร็วกว่ามากสำหรับภาพเดียว
-    inp        = tf.constant(cv2.resize(img_bgr, (299, 299))[None], dtype=tf.float32)
-    pred       = face_shape_model(inp, training=False).numpy()
-    idx        = np.argmax(pred)
-    face_shape = classes[idx]
-    confidence = float(pred[0][idx]) * 100
+    img_resized = cv2.resize(img_bgr, (299, 299))
+    pred        = face_shape_model.predict(np.expand_dims(img_resized, 0), verbose=0)
+    idx         = np.argmax(pred)
+    face_shape  = classes[idx]
+    confidence  = float(pred[0][idx]) * 100
 
     ratiog, score, face_detected = 0.0, 0.0, False
 
@@ -214,12 +201,12 @@ def predict_face_shape(img_pil):
 
     # ── คำนวณ Physiognomical Facial Index ตามงานวิจัย (PMC3530317) ──
     # Facial Index = Physiognomical Facial Height (tr–gn) / Bizygomatic Width (zy–zy)
-    # tr = trichion (ยอดหน้าผาก), gn = gnathion (ปลายคาง), zy = zygion (กระดูกโหนกแก้ม)
+    # tr = trichion, gn = gnathion, zy = zygion
     if len(faces) > 0:
         x, y, w, h = faces[0]
         ih, iw = img.shape[:2]
 
-        # ขยาย bounding box เพื่อให้ครอบคลุม tr (หน้าผาก) และ gn (คาง)
+        # ขยาย bounding box ให้ครอบคลุม tr (หน้าผาก) และ gn (คาง)
         pad_top    = int(h * 0.3)
         pad_bottom = int(h * 0.15)
         pad_side   = int(w * 0.05)
@@ -241,7 +228,6 @@ def predict_face_shape(img_pil):
         if contours:
             largest        = max(contours, key=cv2.contourArea)
             bx, by, bw, bh = cv2.boundingRect(largest)
-            # แปลง coordinate กลับสู่ภาพต้นฉบับ
             face_x = x1 + bx
             face_y = y1 + by
             face_w = bw
@@ -249,35 +235,28 @@ def predict_face_shape(img_pil):
         else:
             face_x, face_y, face_w, face_h = x1, y1, x2-x1, y2-y1
 
-        # ── จุด landmark 4 จุดตามงานวิจัย ──
-        # tr = trichion: กึ่งกลางแนวนอน, บนสุดของใบหน้า
-        tr = (face_x + face_w // 2, face_y)
-        # gn = gnathion: กึ่งกลางแนวนอน, ล่างสุดของใบหน้า
-        gn = (face_x + face_w // 2, face_y + face_h)
-        # zy = zygion: ซ้ายและขวาของใบหน้าที่ระดับกึ่งกลางแนวตั้ง
-        zy_l = (face_x,            face_y + face_h // 2)
-        zy_r = (face_x + face_w,   face_y + face_h // 2)
-
         c = tuple(shape_info[face_shape]['color'][::-1])
 
-        # วาดเส้นวัด: tr–gn (Physiognomical Facial Height)
-        cv2.line(img_out, tr, gn, c, 2)
-        # วาดเส้นวัด: zy–zy (Bizygomatic Width)
-        cv2.line(img_out, zy_l, zy_r, c, 2)
+        # landmark 4 จุดตามงานวิจัย
+        tr   = (face_x + face_w // 2, face_y)                # trichion
+        gn   = (face_x + face_w // 2, face_y + face_h)       # gnathion
+        zy_l = (face_x,               face_y + face_h // 2)  # zygion ซ้าย
+        zy_r = (face_x + face_w,      face_y + face_h // 2)  # zygion ขวา
 
-        # วาด landmark points พร้อม label
-        for pt, label in [(tr, "tr"), (gn, "gn"), (zy_l, "zy"), (zy_r, "zy")]:
+        # วาดเส้นวัด
+        cv2.line(img_out, tr, gn, c, 2)      # Physiognomical Facial Height
+        cv2.line(img_out, zy_l, zy_r, c, 2)  # Bizygomatic Width
+
+        # วาด landmark points + label
+        for pt, lbl in [(tr,"tr"),(gn,"gn"),(zy_l,"zy"),(zy_r,"zy")]:
             cv2.circle(img_out, pt, 8, c, -1)
             cv2.circle(img_out, pt, 8, (255,255,255), 2)
-            cv2.putText(img_out, label, (pt[0]+10, pt[1]-6),
+            cv2.putText(img_out, lbl, (pt[0]+10, pt[1]-6),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1, cv2.LINE_AA)
 
-        # ── Physiognomical Facial Index = height(tr–gn) / width(zy–zy) ──
-        facial_height = face_h                         # tr → gn
-        facial_width  = face_w                         # zy → zy
-        ratiog = facial_height / facial_width if facial_width > 0 else 1.0
-
-        score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+        # Physiognomical Facial Index = height(tr–gn) / width(zy–zy)
+        ratiog = face_h / face_w if face_w > 0 else 1.0
+        score  = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
