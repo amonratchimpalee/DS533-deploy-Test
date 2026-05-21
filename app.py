@@ -24,7 +24,6 @@ def load_models():
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(MODEL_LOCAL, custom_objects={'preprocess': preprocess})
 
-    # MediaPipe Face Landmarker (new Tasks API, works on 0.10+)
     from mediapipe.tasks import python as mp_python
     from mediapipe.tasks.python import vision as mp_vision
     import urllib.request
@@ -49,30 +48,26 @@ def load_models():
 
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
 
-# MediaPipe Face Mesh landmark indices (based on canonical 468-point map)
-# Reference: https://github.com/google/mediapipe/blob/master/mediapipe/modules/face_geometry/data/canonical_face_model_uv_visualization.png
-LANDMARK_TRICHION  = 10    # hairline / top of forehead
-LANDMARK_GNATHION  = 152   # bottom of chin
-LANDMARK_ZY_LEFT   = 234   # left zygion (cheekbone)
-LANDMARK_ZY_RIGHT  = 454   # right zygion (cheekbone)
-LANDMARK_GO_LEFT   = 172   # left gonion (jaw angle)  — bonus for jaw width
-LANDMARK_GO_RIGHT  = 397   # right gonion (jaw angle)
+LANDMARK_TRICHION = 10
+LANDMARK_GNATHION = 152
+LANDMARK_ZY_LEFT  = 234
+LANDMARK_ZY_RIGHT = 454
 
 shape_info = {
     'Oval':   {'emoji':'🥚','color':[218,165,32],'gradient':'linear-gradient(135deg,#f7c948,#ffe08a)','accent':'#ffe08a',
-               'desc':'ใบหน้ารูปไข่ ',
+               'desc':'ใบหน้ารูปไข่',
                'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
     'Square': {'emoji':'⬛','color':[210,140,0],'gradient':'linear-gradient(135deg,#d48c00,#f5c842)','accent':'#f5c842',
-               'desc':'ใบหน้าเหลี่ยม ',
+               'desc':'ใบหน้าเหลี่ยม',
                'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ'},
     'Round':  {'emoji':'⭕','color':[232,120,0],'gradient':'linear-gradient(135deg,#e87800,#ffc13b)','accent':'#ffc13b',
                'desc':'ใบหน้ากลม',
                'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs'},
     'Heart':  {'emoji':'❤️','color':[200,150,0],'gradient':'linear-gradient(135deg,#c89600,#fada5e)','accent':'#fada5e',
-               'desc':'ใบหน้ารูปหัวใจ ',
+               'desc':'ใบหน้ารูปหัวใจ',
                'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs'},
     'Oblong': {'emoji':'📏','color':[180,120,0],'gradient':'linear-gradient(135deg,#b47800,#f0b429)','accent':'#f0b429',
-               'desc':'ใบหน้ายาว ',
+               'desc':'ใบหน้ายาว',
                'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
 }
 
@@ -109,9 +104,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
 [data-testid="stFileUploader"] button{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;
     border-radius:8px!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
-[data-testid="stFileUploader"] section button:not([data-testid="stFileUploaderDeleteBtn"]){display:none!important}
-[data-testid="stFileUploader"] [kind="secondary"]{display:none!important}
-button[data-testid="baseButton-secondary"]:has(~ [data-testid="stFileUploaderFile"]){display:none!important}
+
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
 [data-testid="stAlert"]{background:rgba(233,30,99,.1)!important;border:1px solid rgba(233,30,99,.3)!important;border-radius:14px!important}
@@ -124,43 +117,28 @@ button[data-testid="baseButton-secondary"]:has(~ [data-testid="stFileUploaderFil
 
 st.markdown("""
 <div class="hero-wrap">
-  <div class="hero-title">✨ Face Shape classification </div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย· MediaPipe Face Mesh</div>
+  <div class="hero-title">✨ Face Shape classification</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
 
 face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
-
-# ซ่อนปุ่ม "Browse files" / "Add files" ที่ขึ้นซ้ำหลังอัปโหลดแล้ว
-st.markdown("""
-<style>
-[data-testid="stFileUploader"] section > button {display:none!important}
-</style>
-""", unsafe_allow_html=True)
 os.makedirs("saved_results", exist_ok=True)
 
 
 def get_pixel(lm, idx, ih, iw):
-    """แปลง normalized landmark → pixel coordinates"""
     pt = lm[idx]
     return (int(pt.x * iw), int(pt.y * ih))
 
 
 def draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, color_bgr):
-    """วาดเส้นวัดและ landmark แม่นยำจาก MediaPipe"""
     c  = color_bgr
     cw = (255, 255, 255)
-
-    # เส้น AB = vertical length (tr→gn)
     mid_x = (tr[0] + gn[0]) // 2
     cv2.line(img_out, (mid_x, tr[1]), (mid_x, gn[1]), c, 2, cv2.LINE_AA)
-
-    # เส้น CD = bizygomatic width (zy_l→zy_r)
     cv2.line(img_out, zy_l, zy_r, c, 2, cv2.LINE_AA)
-
-    # landmark dots + labels
     landmarks = [
         (tr,   "A: trichion"),
         (gn,   "B: gnathion"),
@@ -182,7 +160,6 @@ def predict_face_shape(img_pil):
     ih, iw  = img_rgb.shape[:2]
     img_out = img_rgb.copy()
 
-    # ── ทำนาย face shape ด้วยโมเดล ──
     img_resized = cv2.resize(img_bgr, (299, 299))
     pred        = face_shape_model.predict(np.expand_dims(img_resized, 0), verbose=0)
     idx         = np.argmax(pred)
@@ -191,7 +168,6 @@ def predict_face_shape(img_pil):
 
     ratiog, score, face_detected = 0.0, 0.0, False
 
-    # ── MediaPipe Face Landmarker (Tasks API) ──
     from mediapipe.tasks.python import vision as mp_vision
     img_rgb_c = np.ascontiguousarray(img_rgb.astype(np.uint8))
     mp_image  = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb_c)
@@ -199,33 +175,23 @@ def predict_face_shape(img_pil):
 
     if results.face_landmarks:
         face_detected = True
-        lm = results.face_landmarks[0]  # list of NormalizedLandmark
+        lm    = results.face_landmarks[0]
         c_bgr = tuple(shape_info[face_shape]['color'][::-1])
 
-        # ── ดึง landmark 4 จุดตาม Saraswathi (2007) ──
-        tr   = get_pixel(lm, LANDMARK_TRICHION,  ih, iw)   # forehead top (~hairline)
-        gn   = get_pixel(lm, LANDMARK_GNATHION,  ih, iw)   # chin bottom
-        zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,   ih, iw)   # left cheekbone
-        zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT,  ih, iw)   # right cheekbone
-        # clamp ให้ tr อยู่ในภาพ
-        tr = (max(0, min(tr[0], iw-1)), max(0, min(tr[1], ih-1)))
-        gn = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
+        tr   = get_pixel(lm, LANDMARK_TRICHION, ih, iw)
+        gn   = get_pixel(lm, LANDMARK_GNATHION, ih, iw)
+        zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,  ih, iw)
+        zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT, ih, iw)
+        tr   = (max(0, min(tr[0], iw-1)), max(0, min(tr[1], ih-1)))
+        gn   = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
 
-        # ── วาด landmark + เส้นวัด ──
         draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, c_bgr)
 
-        # ── Facial Index = vertical length / bizygomatic width ──
         face_h_meas = abs(gn[1] - tr[1])
         face_w_meas = abs(zy_r[0] - zy_l[0])
+        ratiog = face_h_meas / face_w_meas if face_w_meas > 0 else 1.0
+        score  = max(0.0, min((1 - abs(ratiog - 1.6) / 1.6) * 100, 100))
 
-        if face_w_meas > 0:
-            ratiog = face_h_meas / face_w_meas
-        else:
-            ratiog = 1.0
-
-        score = max(0.0, min((1 - abs(ratiog - 1.6) / 1.6) * 100, 100))
-
-        # ── label Facial Index บนภาพ ──
         label = f"Facial Index: {ratiog:.2f}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
         lx = min(zy_l[0], tr[0])
@@ -244,7 +210,7 @@ if uploaded_file:
     with col1:
         with st.spinner("🔍 กำลังวิเคราะห์..."):
             face_shape, confidence, ratiog, score, img_out, face_detected = predict_face_shape(img_pil)
-        st.image(img_out, width='stretch')
+        st.image(img_out, use_container_width=True)
 
     with col2:
         if not face_detected:
@@ -260,16 +226,16 @@ if uploaded_file:
             ratio_str = f"{ratiog:.2f}"
             score_str = f"{score:.0f}"
 
-            # ตาม Saraswathi (2007): Normal = 1.6 พอดี, Long > 1.6, Short < 1.6
+            # ตาม Saraswathi (2007): Normal = 1.6, Long > 1.6, Short < 1.6
             if ratiog == 1.6:
                 fi_label = "ปกติ — Normal (= 1.6)"
-                fi_color  = "#7fff7f"
+                fi_color = "#7fff7f"
             elif ratiog > 1.6:
                 fi_label = "ใบหน้ายาว — Long face (> 1.6)"
-                fi_color  = accent
+                fi_color = accent
             else:
                 fi_label = "ใบหน้าสั้น — Short face (< 1.6)"
-                fi_color  = accent
+                fi_color = accent
 
             card_html = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
 <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap' rel='stylesheet'>
@@ -304,7 +270,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
   letter-spacing:.08em;margin-bottom:.2rem}}
 .fi-val{{font-size:.9rem;font-weight:600;color:{fi_color}}}
 .badge{{display:inline-block;background:rgba(255,255,255,.08);border-radius:6px;
-  font-size:.6rem;color:rgba(255,255,255,.3);padding:.15rem .4rem;margin-bottom:.5rem;
+  font-size:.6rem;color:rgba(255,255,255,.3);padding:.15rem .4rem;margin-top:.4rem;
   text-transform:uppercase;letter-spacing:.08em}}
 .hair-box{{background:rgba(255,255,255,.04);border-left:3px solid {accent};
   border-radius:0 12px 12px 0;padding:.85rem 1rem}}
@@ -332,9 +298,9 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
     </div>
   </div>
   <div class='fi-box'>
-    
+    <div class='fi-label'>Saraswathi (2007) · Length / Bizygomatic Width</div>
     <div class='fi-val'>{fi_label}</div>
-    <div class='badge' style='margin-top:.4rem'></div>
+    <div class='badge'>📍 MediaPipe Face Mesh 468-point</div>
   </div>
   <div class='hair-box'>
     <div class='hair-title'>💇 ทรงผมที่แนะนำ</div>
@@ -345,5 +311,5 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 
             components.html(card_html, height=620, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by <b>4 angie</b></div>",
+st.markdown("<div class='footer'>Powered by <b>4 angie</b> · อ้างอิง: Saraswathi (2007) Eur J Anat 11(3):177-180</div>",
             unsafe_allow_html=True)
