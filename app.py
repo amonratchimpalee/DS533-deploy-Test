@@ -7,7 +7,7 @@ import keras
 import os
 from PIL import Image
 import gdown
-import mediapipe as mp
+from mediapipe.python.solutions import face_mesh as mp_face_mesh
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 @keras.saving.register_keras_serializable()
@@ -204,7 +204,6 @@ def predict_face_shape(img_pil):
             cv2.circle(img_out, pt, 8, (255,255,255), 2)
 
     # ── คำนวณ Golden Ratio จาก MediaPipe Face Landmark ──
-    mp_face_mesh = mp.solutions.face_mesh
     with mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1,
                                 refine_landmarks=True) as mesh:
         results = mesh.process(img)  # RGB
