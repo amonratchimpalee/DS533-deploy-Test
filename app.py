@@ -56,19 +56,24 @@ LANDMARK_ZY_RIGHT = 454
 shape_info = {
     'Oval':   {'emoji':'🥚','color':[218,165,32],'gradient':'linear-gradient(135deg,#f7c948,#ffe08a)','accent':'#ffe08a',
                'desc':'ใบหน้ารูปไข่',
-               'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
+               'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง',
+               'glasses':'ทุกทรงเหมาะกับใบหน้ารูปไข่ แนะนำ rectangle, square และ aviator เพื่อเพิ่มความคมชัด'},
     'Square': {'emoji':'⬛','color':[210,140,0],'gradient':'linear-gradient(135deg,#d48c00,#f5c842)','accent':'#f5c842',
                'desc':'ใบหน้าเหลี่ยม',
-               'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ'},
+               'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ',
+               'glasses':'แนะนำ round, oval และ aviator เพื่อลดความเหลี่ยม หลีกเลี่ยงกรอบเหลี่ยมตรง'},
     'Round':  {'emoji':'⭕','color':[232,120,0],'gradient':'linear-gradient(135deg,#e87800,#ffc13b)','accent':'#ffc13b',
                'desc':'ใบหน้ากลม',
-               'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs'},
+               'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs',
+               'glasses':'แนะนำ rectangle และ square เพื่อเพิ่มความยาวให้ใบหน้า หลีกเลี่ยงกรอบกลม'},
     'Heart':  {'emoji':'❤️','color':[200,150,0],'gradient':'linear-gradient(135deg,#c89600,#fada5e)','accent':'#fada5e',
                'desc':'ใบหน้ารูปหัวใจ',
-               'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs'},
+               'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs',
+               'glasses':'แนะนำ oval, aviator และ rimless เพื่อสมดุลหน้าผากกว้าง หลีกเลี่ยงกรอบบนหนา'},
     'Oblong': {'emoji':'📏','color':[180,120,0],'gradient':'linear-gradient(135deg,#b47800,#f0b429)','accent':'#f0b429',
                'desc':'ใบหน้ายาว',
-               'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
+               'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs',
+               'glasses':'แนะนำ square, round และ oversized เพื่อเพิ่มความกว้าง หลีกเลี่ยงกรอบแคบหรือสูงมาก'},
 }
 
 st.set_page_config(page_title="Face Shape AI ✨", page_icon="✨", layout="centered")
@@ -77,7 +82,6 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
-/* ── background ── */
 [data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>div,.main,.block-container{background:transparent!important}
 [data-testid="stAppViewContainer"]{
     background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(200,130,0,.22) 0%,transparent 60%),
@@ -88,7 +92,6 @@ st.markdown("""
 .main .block-container{padding-top:2.5rem!important;max-width:780px}
 html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM Sans',sans-serif!important;color:rgba(255,255,255,.85)}
 
-/* ── hero ── */
 .hero-wrap{text-align:center;margin-bottom:1.8rem}
 .hero-title{font-family:'Playfair Display',serif!important;font-size:clamp(2rem,6vw,3.2rem);font-weight:900!important;
     background:linear-gradient(135deg,#fff 0%,#ffe8a0 45%,#e8860a 100%);
@@ -98,21 +101,19 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     text-transform:uppercase;-webkit-text-fill-color:rgba(255,255,255,.3)!important}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(220,150,20,.6),rgba(255,255,255,.08),transparent);margin:0 0 2rem}
 
-/* ── file uploader ── */
 [data-testid="stFileUploader"] label,[data-testid="stFileUploader"] label *{
     color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
 [data-testid="stFileUploader"] section{
     background:rgba(255,255,255,.04)!important;
     border:1.5px dashed rgba(255,255,255,.18)!important;
     border-radius:18px!important;
-    padding:.75rem 1.2rem!important}
+    padding:.75rem 1.2rem!important;
+    position:relative!important}
 [data-testid="stFileUploader"] section:hover{
     border-color:rgba(220,150,20,.6)!important;
     background:rgba(220,150,20,.05)!important}
 [data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-/* ปุ่ม Browse files — ซ่อน icon button (position absolute ทับ text button) */
-[data-testid="stFileUploader"] section{position:relative!important}
 [data-testid="stFileUploader"] section button{
     background:rgba(255,255,255,.08)!important;
     border:1px solid rgba(255,255,255,.2)!important;
@@ -127,14 +128,10 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     pointer-events:none!important;
     z-index:0!important}
 
-
-/* ── image / spinner / alert ── */
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
 [data-testid="stAlert"]{background:rgba(233,30,99,.1)!important;border:1px solid rgba(233,30,99,.3)!important;border-radius:14px!important}
 [data-testid="stAlert"] *{color:#ff6b9d!important;-webkit-text-fill-color:#ff6b9d!important}
-
-/* ── footer ── */
 .footer{text-align:center;padding:2.5rem 0 1rem;font-size:.75rem;color:rgba(255,255,255,.15)!important;
     -webkit-text-fill-color:rgba(255,255,255,.15)!important;letter-spacing:.06em}
 .footer b{color:rgba(220,160,20,.6)!important;-webkit-text-fill-color:rgba(220,160,20,.6)!important}
@@ -144,36 +141,29 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
 
 face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
-# ซ่อน icon button ตัวแรกที่ทับกับ text button ด้วย JS
-st.components.v1.html("""
-<script>
-function hideIconBtn() {
-    const btns = window.parent.document.querySelectorAll('[data-testid="stFileUploader"] section button');
-    if (btns.length >= 2) {
-        btns[0].style.display = 'none';
-    } else {
-        setTimeout(hideIconBtn, 200);
-    }
-}
-hideIconBtn();
-</script>
-""", height=0)
 st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
   ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
-  แสงสว่างเพียงพอ &nbsp;·&nbsp;
-&nbsp;·&nbsp;
+  แสงสว่างเพียงพอ &nbsp;·&nbsp; ไม่สวมแว่น &nbsp;·&nbsp;
   มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
 </div>
 """, unsafe_allow_html=True)
 os.makedirs("saved_results", exist_ok=True)
+
+
+def fix_orientation(img_pil):
+    try:
+        from PIL import ImageOps
+        return ImageOps.exif_transpose(img_pil)
+    except Exception:
+        return img_pil
 
 
 def get_pixel(lm, idx, ih, iw):
@@ -201,14 +191,6 @@ def draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, color_bgr):
         cv2.putText(img_out, lbl, (tx, ty),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, cw, 1, cv2.LINE_AA)
 
-
-def fix_orientation(img_pil):
-    """แก้ EXIF orientation สำหรับภาพจากโทรศัพท์"""
-    try:
-        from PIL import ImageOps
-        return ImageOps.exif_transpose(img_pil)
-    except Exception:
-        return img_pil
 
 def predict_face_shape(img_pil):
     img_pil = fix_orientation(img_pil)
@@ -241,7 +223,6 @@ def predict_face_shape(img_pil):
         zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,  ih, iw)
         zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT, ih, iw)
 
-        # ── trichion: topmost landmark + offset ขึ้น ~12% ของความสูงใบหน้า ──
         all_y = [int(p.y * ih) for p in lm]
         top_y = max(0, min(all_y))
         gn_y  = gn[1]
@@ -250,7 +231,7 @@ def predict_face_shape(img_pil):
         mid_face_x = (zy_l[0] + zy_r[0]) // 2
         tr = (mid_face_x, hairline_y)
 
-        gn   = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
+        gn = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
 
         draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, c_bgr)
 
@@ -291,11 +272,12 @@ if uploaded_file:
             emoji     = info['emoji']
             desc      = info['desc']
             hair      = info['hair']
+            glasses   = info['glasses']
             conf_str  = f"{confidence:.1f}"
             ratio_str = f"{ratiog:.2f}"
             score_str = f"{score:.0f}"
 
-            if 1.608 <= ratiog <= 1.628:  # ±0.01 รอบ 1.618
+            if 1.608 <= ratiog <= 1.628:
                 fi_label = "ปกติ — Normal (≈ 1.618)"
                 fi_color = "#7fff7f"
             elif ratiog > 1.628:
@@ -334,17 +316,12 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
   letter-spacing:.06em;margin-top:.18rem}}
 .fi-box{{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
   border-radius:13px;padding:.7rem 1rem;margin-bottom:.75rem;text-align:center}}
-.fi-label{{font-size:.62rem;color:rgba(255,255,255,.28);text-transform:uppercase;
-  letter-spacing:.08em;margin-bottom:.2rem}}
 .fi-val{{font-size:.9rem;font-weight:600;color:{fi_color}}}
-.badge{{display:inline-block;background:rgba(255,255,255,.08);border-radius:6px;
-  font-size:.6rem;color:rgba(255,255,255,.3);padding:.15rem .4rem;margin-top:.4rem;
-  text-transform:uppercase;letter-spacing:.08em}}
-.hair-box{{background:rgba(255,255,255,.04);border-left:3px solid {accent};
-  border-radius:0 12px 12px 0;padding:.85rem 1rem}}
-.hair-title{{color:{accent};font-size:.68rem;font-weight:600;
+.section-box{{background:rgba(255,255,255,.04);border-left:3px solid {accent};
+  border-radius:0 12px 12px 0;padding:.85rem 1rem;margin-bottom:.6rem}}
+.section-title{{color:{accent};font-size:.68rem;font-weight:600;
   text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem}}
-.hair-text{{color:rgba(255,255,255,.68);font-size:.85rem;line-height:1.6}}
+.section-text{{color:rgba(255,255,255,.68);font-size:.85rem;line-height:1.6}}
 .positive-box{{margin-top:.75rem;padding:.8rem 1rem;background:rgba(255,255,255,.04);
   border-radius:13px;font-size:.8rem;color:rgba(255,255,255,.45);
   text-align:center;line-height:1.7;font-style:italic}}
@@ -363,7 +340,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
       <div class='m-label'>Facial Index</div>
     </div>
     <div class='metric'>
-      <div class='m-icon'>⭐</div>
+      <div class='m-icon'>✨</div>
       <div class='m-val'>{score_str}%</div>
       <div class='m-label'>Golden Ratio Score</div>
     </div>
@@ -371,9 +348,13 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
   <div class='fi-box'>
     <div class='fi-val'>{fi_label}</div>
   </div>
-  <div class='hair-box'>
-    <div class='hair-title'>💇 ทรงผมที่แนะนำ</div>
-    <div class='hair-text'>{hair}</div>
+  <div class='section-box'>
+    <div class='section-title'>💇 ทรงผมที่แนะนำ</div>
+    <div class='section-text'>{hair}</div>
+  </div>
+  <div class='section-box'>
+    <div class='section-title'>👓 แว่นตาที่แนะนำ</div>
+    <div class='section-text'>{glasses}</div>
   </div>
   <div class='positive-box'>
     ✨ ต่อให้ Golden Ratio Score จะเป็นเท่าไหร่ ความสวยงามไม่ได้วัดด้วยตัวเลข ทุกรูปหน้ามีเสน่ห์เฉพาะตัวที่ไม่มีใครเหมือน ✨
@@ -381,7 +362,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 </div>
 </body></html>"""
 
-            components.html(card_html, height=620, scrolling=False)
+            components.html(card_html, height=820, scrolling=False)
 
 st.markdown("<div class='footer'>Powered by <b>4 angie</b></div>",
             unsafe_allow_html=True)
