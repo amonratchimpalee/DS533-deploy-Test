@@ -3,14 +3,10 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import keras
-import mediapipe as mp
 import os
 from PIL import Image
 import gdown
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
-from mediapipe.tasks import python as mp_python
-from mediapipe.tasks.python import vision
-from mediapipe.tasks.python.vision import FaceLandmarker, FaceLandmarkerOptions, RunningMode
 
 # -----------------------------
 # Register custom preprocess function
@@ -26,31 +22,22 @@ def preprocess(x):
 MODEL_URL = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
 MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
-# MediaPipe face landmarker model
-FACE_LANDMARKER_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-FACE_LANDMARKER_LOCAL = "face_landmarker.task"
-
 # -----------------------------
 # Caching model load
 # -----------------------------
 @st.cache_resource
 def load_models():
-    # Load face shape model
     if not os.path.exists(MODEL_LOCAL):
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(
         MODEL_LOCAL,
         custom_objects={'preprocess': preprocess}
     )
+    # Load OpenCV face detector
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    return face_model, face_cascade
 
-    # Download mediapipe task model
-    if not os.path.exists(FACE_LANDMARKER_LOCAL):
-        import urllib.request
-        urllib.request.urlretrieve(FACE_LANDMARKER_URL, FACE_LANDMARKER_LOCAL)
-
-    return face_model
-
-face_shape_model = load_models()
+face_shape_model, face_cascade = load_models()
 
 # -----------------------------
 # Class labels & hairstyle recommendations
@@ -78,13 +65,13 @@ h1 {text-align:center; color:#004d40;}
 st.title("Face Shape Detector & Hairstyle Recommendation")
 uploaded_file = st.file_uploader("Upload a face image", type=["jpg", "jpeg", "png"])
 
-SAVE_DIR = "saved_results"
-os.makedirs(SAVE_DIR, exist_ok=True)
+os.makedirs("saved_results", exist_ok=True)
 
 
 def predict_face_shape(img_pil):
     img = np.array(img_pil.convert("RGB"))
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     img_landmarks = img.copy()
 
     # ----- Model prediction -----
@@ -95,44 +82,39 @@ def predict_face_shape(img_pil):
     face_shape = classes[idx]
     confidence = pred[0][idx] * 100
 
-    # ----- MediaPipe new API landmark detection -----
+    # ----- OpenCV face detection + golden ratio -----
     ratiog = 0
     score = 0
     face_detected = False
 
-    options = FaceLandmarkerOptions(
-        base_options=mp_python.BaseOptions(model_asset_path=FACE_LANDMARKER_LOCAL),
-        running_mode=RunningMode.IMAGE,
-        num_faces=1
-    )
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    with FaceLandmarker.create_from_options(options) as landmarker:
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img)
-        result = landmarker.detect(mp_image)
+    if len(faces) > 0:
+        face_detected = True
+        for (x, y, w, h) in faces:
+            # Draw face rectangle
+            cv2.rectangle(img_landmarks, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        if result.face_landmarks:
-            face_detected = True
-            h, w = img.shape[:2]
-            lm = result.face_landmarks[0]
+            # Estimate key points
+            forehead_y = y
+            chin_y = y + h
+            left_x = x
+            right_x = x + w
 
-            # Draw landmarks
-            for landmark in lm:
-                x = int(landmark.x * w)
-                y = int(landmark.y * h)
-                cv2.circle(img_landmarks, (x, y), 1, (0, 255, 0), -1)
-
-            # Golden ratio
-            forehead_y = lm[10].y * h
-            chin_y = lm[152].y * h
-            left_x = lm[234].x * w
-            right_x = lm[454].x * w
-
-            face_height = abs(chin_y - forehead_y)
-            face_width = abs(right_x - left_x)
+            face_height = float(chin_y - forehead_y)
+            face_width = float(right_x - left_x)
 
             if face_width > 0:
                 ratiog = face_height / face_width
-                score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+                score = max(0.0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+
+            # Draw key points
+            cx = x + w // 2
+            cv2.circle(img_landmarks, (cx, forehead_y), 5, (255, 0, 0), -1)
+            cv2.circle(img_landmarks, (cx, chin_y), 5, (255, 0, 0), -1)
+            cv2.circle(img_landmarks, (left_x, y + h // 2), 5, (255, 0, 0), -1)
+            cv2.circle(img_landmarks, (right_x, y + h // 2), 5, (255, 0, 0), -1)
+            break  # use first face only
 
     if not face_detected:
         return "No face detected", None
@@ -151,4 +133,4 @@ if uploaded_file is not None:
     result_text, landmark_img = predict_face_shape(img_pil)
     st.text_area("Prediction Result", result_text, height=120)
     if landmark_img is not None:
-        st.image(landmark_img, caption="Landmarks Detected", use_column_width=True)
+        st.image(landmark_img, caption="Face Detected", use_column_width=True)
