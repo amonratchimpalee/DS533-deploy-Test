@@ -7,7 +7,6 @@ import keras
 import os
 from PIL import Image
 import gdown
-from mediapipe.python.solutions import face_mesh as mp_face_mesh
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 @keras.saving.register_keras_serializable()
@@ -203,20 +202,38 @@ def predict_face_shape(img_pil):
             cv2.circle(img_out, pt, 8, c, -1)
             cv2.circle(img_out, pt, 8, (255,255,255), 2)
 
-    # ── คำนวณ Golden Ratio จาก MediaPipe Face Landmark ──
-    with mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1,
-                                refine_landmarks=True) as mesh:
-        results = mesh.process(img)  # RGB
-        if results.multi_face_landmarks:
-            face_detected = True
-            lm = results.multi_face_landmarks[0].landmark
-            ih, iw = img.shape[:2]
+    # ── คำนวณ Golden Ratio จาก face crop จริง ──
+    if len(faces) > 0:
+        x, y, w, h = faces[0]
+        ih, iw = img.shape[:2]
 
-            # จุด 10=หน้าผาก, 152=คาง, 234=แก้มซ้าย, 454=แก้มขวา
-            face_h = abs(lm[10].y - lm[152].y) * ih
-            face_w = abs(lm[234].x - lm[454].x) * iw
-            ratiog = face_h / face_w if face_w > 0 else 0
-            score  = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+        # ขยาย bounding box ขึ้นเพื่อให้รวมหน้าผาก และลงเพื่อรวมคาง
+        pad_top    = int(h * 0.3)
+        pad_bottom = int(h * 0.15)
+        pad_side   = int(w * 0.05)
+        y1 = max(0, y - pad_top)
+        y2 = min(ih, y + h + pad_bottom)
+        x1 = max(0, x - pad_side)
+        x2 = min(iw, x + w + pad_side)
+
+        face_crop = img[y1:y2, x1:x2]
+
+        # หาขอบใบหน้าจริงด้วย skin detection ใน YCrCb
+        ycrcb     = cv2.cvtColor(face_crop, cv2.COLOR_RGB2YCrCb)
+        skin_mask = cv2.inRange(ycrcb, (0, 133, 77), (255, 173, 127))
+        skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE,
+                                     np.ones((7,7), np.uint8))
+        contours, _ = cv2.findContours(skin_mask, cv2.RETR_EXTERNAL,
+                                        cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            largest = max(contours, key=cv2.contourArea)
+            bx, by, bw, bh = cv2.boundingRect(largest)
+            ratiog = bh / bw if bw > 0 else (y2-y1)/(x2-x1)
+        else:
+            ratiog = (y2 - y1) / (x2 - x1)
+
+        score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
