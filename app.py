@@ -118,8 +118,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     border-radius:8px!important;
     color:#fff!important;
     -webkit-text-fill-color:#fff!important}
-/* ซ่อนเฉพาะ icon-only button (ตัวแรก ไม่มี text) */
-[data-testid="stFileUploader"] section button:not(:has(p)){display:none!important}
+
 
 /* ── image / spinner / alert ── */
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
@@ -144,6 +143,20 @@ st.markdown("""
 
 face_shape_model, face_mesh = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
+# ซ่อน icon button ตัวแรกที่ทับกับ text button ด้วย JS
+st.components.v1.html("""
+<script>
+function hideIconBtn() {
+    const btns = window.parent.document.querySelectorAll('[data-testid="stFileUploader"] section button');
+    if (btns.length >= 2) {
+        btns[0].style.display = 'none';
+    } else {
+        setTimeout(hideIconBtn, 200);
+    }
+}
+hideIconBtn();
+</script>
+""", height=0)
 st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
   ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
