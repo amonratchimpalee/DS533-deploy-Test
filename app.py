@@ -315,5 +315,5 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 
             components.html(card_html, height=620, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by <b>4 angie</b> · อ้างอิง: Saraswathi (2007) Eur J Anat 11(3):177-180</div>",
+st.markdown("<div class='footer'>Powered by <b>4 angie</b> </div>",
             unsafe_allow_html=True)
