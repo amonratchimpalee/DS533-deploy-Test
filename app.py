@@ -111,13 +111,21 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     background:rgba(220,150,20,.05)!important}
 [data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-/* ปุ่ม Browse files */
+/* ปุ่ม Browse files — ซ่อน icon button (position absolute ทับ text button) */
+[data-testid="stFileUploader"] section{position:relative!important}
 [data-testid="stFileUploader"] section button{
     background:rgba(255,255,255,.08)!important;
     border:1px solid rgba(255,255,255,.2)!important;
     border-radius:8px!important;
     color:#fff!important;
-    -webkit-text-fill-color:#fff!important}
+    -webkit-text-fill-color:#fff!important;
+    position:relative!important;
+    z-index:1!important}
+[data-testid="stFileUploader"] section button:first-child{
+    position:absolute!important;
+    opacity:0!important;
+    pointer-events:none!important;
+    z-index:0!important}
 
 
 /* ── image / spinner / alert ── */
@@ -136,7 +144,7 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 st.markdown("""
 <div class="hero-wrap">
   <div class="hero-title">✨ Face Shape classification</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย · MediaPipe Face Mesh</div>
+  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย </div>
 </div>
 <div class="divider"></div>
 """, unsafe_allow_html=True)
@@ -161,7 +169,7 @@ st.markdown("""
 <div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
   ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
   แสงสว่างเพียงพอ &nbsp;·&nbsp;
-  ไม่สวมแว่น &nbsp;·&nbsp;
+&nbsp;·&nbsp;
   มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
 </div>
 """, unsafe_allow_html=True)
@@ -249,7 +257,7 @@ def predict_face_shape(img_pil):
         face_h_meas = abs(gn[1] - tr[1])
         face_w_meas = abs(zy_r[0] - zy_l[0])
         ratiog = face_h_meas / face_w_meas if face_w_meas > 0 else 1.0
-        score  = max(0.0, min((1 - abs(ratiog - 1.6) / 1.6) * 100, 100))
+        score  = max(0.0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
         label = f"Facial Index: {ratiog:.2f}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
@@ -287,14 +295,14 @@ if uploaded_file:
             ratio_str = f"{ratiog:.2f}"
             score_str = f"{score:.0f}"
 
-            if ratiog == 1.6:
-                fi_label = "ปกติ — Normal (= 1.6)"
+            if 1.608 <= ratiog <= 1.628:  # ±0.01 รอบ 1.618
+                fi_label = "ปกติ — Normal (≈ 1.618)"
                 fi_color = "#7fff7f"
-            elif ratiog > 1.6:
-                fi_label = "ใบหน้ายาว — Long face (> 1.6)"
+            elif ratiog > 1.628:
+                fi_label = "ใบหน้ายาว — Long face (> 1.618)"
                 fi_color = accent
             else:
-                fi_label = "ใบหน้าสั้น — Short face (< 1.6)"
+                fi_label = "ใบหน้าสั้น — Short face (< 1.618)"
                 fi_color = accent
 
             card_html = f"""<!DOCTYPE html><html><head><meta charset='utf-8'>
@@ -337,6 +345,9 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
 .hair-title{{color:{accent};font-size:.68rem;font-weight:600;
   text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem}}
 .hair-text{{color:rgba(255,255,255,.68);font-size:.85rem;line-height:1.6}}
+.positive-box{{margin-top:.75rem;padding:.8rem 1rem;background:rgba(255,255,255,.04);
+  border-radius:13px;font-size:.8rem;color:rgba(255,255,255,.45);
+  text-align:center;line-height:1.7;font-style:italic}}
 </style></head><body>
 <div class='card'>
   <div class='emoji'>{emoji}</div>
@@ -354,7 +365,7 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
     <div class='metric'>
       <div class='m-icon'>⭐</div>
       <div class='m-val'>{score_str}%</div>
-      <div class='m-label'>ใกล้ phi (1.6)</div>
+      <div class='m-label'>Golden Ratio Score</div>
     </div>
   </div>
   <div class='fi-box'>
@@ -363,6 +374,9 @@ body{{background:transparent;font-family:'DM Sans',sans-serif}}
   <div class='hair-box'>
     <div class='hair-title'>💇 ทรงผมที่แนะนำ</div>
     <div class='hair-text'>{hair}</div>
+  </div>
+  <div class='positive-box'>
+    ✨ ต่อให้ Golden Ratio Score จะเป็นเท่าไหร่ ความสวยงามไม่ได้วัดด้วยตัวเลข ทุกรูปหน้ามีเสน่ห์เฉพาะตัวที่ไม่มีใครเหมือน ✨
   </div>
 </div>
 </body></html>"""
