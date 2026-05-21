@@ -109,6 +109,8 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
 [data-testid="stFileUploader"] button{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;
     border-radius:8px!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+[data-testid="stFileUploaderDeleteBtn"] ~ button,
+[data-testid="stFileUploader"] [data-testid="baseButton-secondary"]{display:none!important}
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
 [data-testid="stAlert"]{background:rgba(233,30,99,.1)!important;border:1px solid rgba(233,30,99,.3)!important;border-radius:14px!important}
