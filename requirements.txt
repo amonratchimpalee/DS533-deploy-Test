@@ -1,8 +1,7 @@
 streamlit
+opencv-python
 tensorflow
 keras
-opencv-python-headless
-numpy
 pillow
 gdown
 mediapipe
