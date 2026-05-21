@@ -2,8 +2,7 @@ streamlit
 opencv-python-headless
 numpy
 tensorflow-cpu==2.20.0
-mediapipe
+keras
 Pillow
-matplotlib
 gdown
  
