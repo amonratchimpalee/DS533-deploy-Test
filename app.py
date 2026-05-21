@@ -1,16 +1,12 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import cv2
 import numpy as np
 import tensorflow as tf
 import keras
-import os
 from PIL import Image
 import gdown
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
-
-# ---------- Mediapipe Import แบบเวอร์ชันใหม่ ----------
-from mediapipe.python.solutions import face_mesh as mp_face_mesh
+import mediapipe as mp  # ใช้เวอร์ชัน PyPI ≥0.10
 
 # ---------- Model preprocessing ----------
 @keras.saving.register_keras_serializable()
@@ -23,7 +19,7 @@ MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
 @st.cache_resource
 def load_models():
-    if not os.path.exists(MODEL_LOCAL):
+    if not tf.io.gfile.exists(MODEL_LOCAL):
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(MODEL_LOCAL, custom_objects={'preprocess': preprocess})
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -31,96 +27,57 @@ def load_models():
 
 # ---------- Face Shape Classes ----------
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
-
 shape_info = {
-    'Oval':   {'emoji':'🥚','color':[218,165,32],'gradient':'linear-gradient(135deg,#f7c948,#ffe08a)','accent':'#ffe08a',
-               'desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม',
-               'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
-    'Square': {'emoji':'⬛','color':[210,140,0],'gradient':'linear-gradient(135deg,#d48c00,#f5c842)','accent':'#f5c842',
-               'desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน',
-               'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ'},
-    'Round':  {'emoji':'⭕','color':[232,120,0],'gradient':'linear-gradient(135deg,#e87800,#ffc13b)','accent':'#ffc13b',
-               'desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น',
-               'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs'},
-    'Heart':  {'emoji':'❤️','color':[200,150,0],'gradient':'linear-gradient(135deg,#c89600,#fada5e)','accent':'#fada5e',
-               'desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม',
-               'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs'},
-    'Oblong': {'emoji':'📏','color':[180,120,0],'gradient':'linear-gradient(135deg,#b47800,#f0b429)','accent':'#f0b429',
-               'desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก',
-               'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
+    'Oval':   {'emoji':'🥚','color':[218,165,32],'desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม','hair':'ผมสั้นถึงกลาง blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
+    'Square': {'emoji':'⬛','color':[210,140,0],'desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน','hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง beach waves, หน้าม้านุ่มๆ'},
+    'Round':  {'emoji':'⭕','color':[232,120,0],'desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น','hair':'ทรงเพิ่มความสูงให้ใบหน้า textured bob, long layers, แสกข้าง, blunt bangs'},
+    'Heart':  {'emoji':'❤️','color':[200,150,0],'desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม','hair':'ผมยาวระดับไหล่ เลเยอร์บริเวณกราม curtain bangs, wispy bangs'},
+    'Oblong': {'emoji':'📏','color':[180,120,0],'desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก','hair':'ลอนคลาย, loose curls, layered bob, หน้าม้าปัดข้างหรือ curtain bangs'},
 }
 
 # ---------- Streamlit Page ----------
 st.set_page_config(page_title="Face Shape AI ✨", page_icon="✨", layout="centered")
-st.markdown("""
-<div class="hero-wrap">
-  <div class="hero-title">✨ Face Shape AI</div>
-  <div class="hero-sub">วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย AI</div>
-</div>
-<div class="divider"></div>
-""", unsafe_allow_html=True)
+st.title("✨ Face Shape AI")
+st.subheader("วิเคราะห์รูปใบหน้าและแนะนำทรงผมด้วย AI")
 
 face_shape_model, face_cascade = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 os.makedirs("saved_results", exist_ok=True)
 
+# ---------- Mediapipe FaceMesh ----------
+face_mesh = mp.solutions.face_mesh.FaceMesh(
+    static_image_mode=True,
+    max_num_faces=1,
+    refine_landmarks=True,
+    min_detection_confidence=0.5
+)
+
 # ---------- Landmark Detection ----------
 def find_landmarks(img_rgb, face_rect):
     ih, iw = img_rgb.shape[:2]
-
-    with mp_face_mesh.FaceMesh(static_image_mode=True,
-                                max_num_faces=1,
-                                refine_landmarks=True,
-                                min_detection_confidence=0.5) as face_mesh:
-        results = face_mesh.process(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
-
+    results = face_mesh.process(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
     if results.multi_face_landmarks:
         lm = results.multi_face_landmarks[0].landmark
-
-        # Landmark trichion / gnathion / zygion
-        tr_x = int(lm[10].x * iw)
-        tr_y = int(lm[10].y * ih)
-        gn_x = int(lm[152].x * iw)
-        gn_y = int(lm[152].y * ih)
-        zy_l_x = int(lm[234].x * iw)
-        zy_l_y = int(lm[234].y * ih)
-        zy_r_x = int(lm[454].x * iw)
-        zy_r_y = int(lm[454].y * ih)
-
-        tr_abs = (tr_x, tr_y)
-        gn_abs = (gn_x, gn_y)
-        zy_l = (zy_l_x, zy_l_y)
-        zy_r = (zy_r_x, zy_r_y)
-
-        face_h_px = gn_y - tr_y
-        face_w_meas = zy_r_x - zy_l_x
-
-        return tr_abs, gn_abs, zy_l, zy_r, face_h_px, face_w_meas
+        tr = (int(lm[10].x*iw), int(lm[10].y*ih))     # Hairline
+        gn = (int(lm[152].x*iw), int(lm[152].y*ih))   # Chin
+        zy_l = (int(lm[234].x*iw), int(lm[234].y*ih)) # Left Zygion
+        zy_r = (int(lm[454].x*iw), int(lm[454].y*ih)) # Right Zygion
+        face_h_px = gn[1] - tr[1]
+        face_w_meas = zy_r[0] - zy_l[0]
+        return tr, gn, zy_l, zy_r, face_h_px, face_w_meas
     else:
         x, y, w, h = face_rect
-        tr_abs = (x + w//2, y)
-        gn_abs = (x + w//2, y + h)
-        zy_l = (x, y + h//2)
-        zy_r = (x + w, y + h//2)
-        return tr_abs, gn_abs, zy_l, zy_r, h, w
+        tr = (x+w//2, y)
+        gn = (x+w//2, y+h)
+        zy_l = (x, y+h//2)
+        zy_r = (x+w, y+h//2)
+        return tr, gn, zy_l, zy_r, h, w
 
-# ---------- Draw Landmarks ----------
 def draw_landmarks(img_out, tr, gn, zy_l, zy_r, color_bgr):
-    c  = color_bgr
-    cw = (255, 255, 255)
-
-    mid_x = (tr[0] + gn[0]) // 2
-    cv2.line(img_out, (mid_x, tr[1]), (mid_x, gn[1]), c,  2, cv2.LINE_AA)
-    cv2.line(img_out, zy_l, zy_r, c, 2, cv2.LINE_AA)
-
-    landmarks = [(tr, "A (tr)"), (gn, "B (gn)"), (zy_l, "C (zy)"), (zy_r, "D (zy)")]
-    for pt, lbl in landmarks:
-        cv2.circle(img_out, pt, 7, c, -1, cv2.LINE_AA)
-        cv2.circle(img_out, pt, 7, cw, 2, cv2.LINE_AA)
-        tx = pt[0] + 10 if pt[0] < img_out.shape[1] - 60 else pt[0] - 70
-        ty = pt[1] - 8 if pt[1] > 20 else pt[1] + 18
-        cv2.putText(img_out, lbl, (tx, ty),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, cw, 1, cv2.LINE_AA)
+    cv2.line(img_out, ((tr[0]+gn[0])//2, tr[1]), ((tr[0]+gn[0])//2, gn[1]), color_bgr, 2)
+    cv2.line(img_out, zy_l, zy_r, color_bgr, 2)
+    for pt in [tr, gn, zy_l, zy_r]:
+        cv2.circle(img_out, pt, 5, color_bgr, -1)
 
 # ---------- Predict Face Shape ----------
 def predict_face_shape(img_pil):
@@ -128,66 +85,33 @@ def predict_face_shape(img_pil):
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     img_out = img.copy()
-
     img_resized = cv2.resize(img_bgr, (299, 299))
     pred = face_shape_model.predict(np.expand_dims(img_resized, 0), verbose=0)
     idx = np.argmax(pred)
     face_shape = classes[idx]
     confidence = float(pred[0][idx]) * 100
-
     ratiog, score, face_detected = 0.0, 0.0, False
-
-    faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30, 30))
-    if len(faces) > 0:
-        face_detected = True
-        x, y, w, h = faces[0]
-        c_bgr = tuple(shape_info[face_shape]['color'][::-1])
-        cv2.rectangle(img_out, (x, y), (x+w, y+h), c_bgr, 1)
-
-        tr, gn, zy_l, zy_r, face_h_meas, face_w_meas = find_landmarks(img, (x, y, w, h))
-        draw_landmarks(img_out, tr, gn, zy_l, zy_r, c_bgr)
-
-        if face_w_meas > 0:
-            ratiog = face_h_meas / face_w_meas
-        else:
-            ratiog = 1.0
-
-        score = max(0.0, min((1 - abs(ratiog - 1.6) / 1.6) * 100, 100))
-
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30,30))
+    if len(faces)>0:
+        face_detected=True
+        x,y,w,h = faces[0]
+        tr, gn, zy_l, zy_r, face_h, face_w = find_landmarks(img, (x,y,w,h))
+        draw_landmarks(img_out, tr, gn, zy_l, zy_r, (0,255,0))
+        ratiog = face_h/face_w if face_w>0 else 1
+        score = max(0.0, min((1 - abs(ratiog-1.6)/1.6)*100, 100))
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
 # ---------- Streamlit App ----------
 if uploaded_file:
     img_pil = Image.open(uploaded_file)
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        with st.spinner("🔍 กำลังวิเคราะห์..."):
-            face_shape, confidence, ratiog, score, img_out, face_detected = predict_face_shape(img_pil)
-        st.image(img_out, use_container_width=True)
-
-    with col2:
-        if not face_detected:
-            st.error("❌ ไม่พบใบหน้าในภาพ กรุณาลองภาพอื่น")
-        else:
-            info      = shape_info[face_shape]
-            gradient  = info['gradient']
-            accent    = info['accent']
-            emoji     = info['emoji']
-            desc      = info['desc']
-            hair      = info['hair']
-            conf_str  = f"{confidence:.1f}"
-            ratio_str = f"{ratiog:.2f}"
-            score_str = f"{score:.0f}"
-
-            st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
-            <div style="font-size: 2rem;">{emoji} {face_shape}</div>
-            <div>{desc}</div>
-            <div>Confidence: {conf_str}%</div>
-            <div>Facial Index: {ratio_str}</div>
-            <div>Score near Phi: {score_str}%</div>
-            <div>Suggested Hair: {hair}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-st.markdown("<div style='font-size:0.7rem; color:gray'>Powered by 4 angie · Saraswathi (2007) Eur J Anat 11(3):177-180</div>", unsafe_allow_html=True)
+    face_shape, confidence, ratiog, score, img_out, face_detected = predict_face_shape(img_pil)
+    st.image(img_out, use_column_width=True)
+    if face_detected:
+        info = shape_info[face_shape]
+        st.markdown(f"**{info['emoji']} {face_shape}**")
+        st.markdown(f"{info['desc']}")
+        st.markdown(f"**Confidence:** {confidence:.1f}%")
+        st.markdown(f"**Facial Index:** {ratiog:.2f} (Score near Phi: {score:.0f}%)")
+        st.markdown(f"**Suggested Hair:** {info['hair']}")
+    else:
+        st.warning("ไม่พบใบหน้าในภาพ กรุณาลองภาพอื่น")
