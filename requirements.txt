@@ -4,4 +4,4 @@ tensorflow
 keras
 pillow
 gdown
-mediapipe>=0.10.0
+mediapipe==0.10.9
