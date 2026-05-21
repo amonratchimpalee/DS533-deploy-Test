@@ -15,8 +15,8 @@ def preprocess(x):
     x = tf.cast(x, tf.float32)
     return preprocess_input(x)
 
-MODEL_URL   = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
-MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
+MODEL_URL   = "https://drive.google.com/file/d/1KAma7fTc6iMubXFEyLf2fI1ZD7v4b-ha/view?usp=drive_link"
+MODEL_LOCAL = "best_ResNet50V2.keras"
 
 @st.cache_resource
 def load_models():
