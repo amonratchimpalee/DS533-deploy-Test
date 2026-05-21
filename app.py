@@ -43,18 +43,17 @@ st.subheader("วิเคราะห์รูปใบหน้าและแ
 face_shape_model, face_cascade = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 
-# ---------- Mediapipe FaceMesh ----------
-face_mesh = mp.face_mesh.FaceMesh(
-    static_image_mode=True,
-    max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.5
-)
-
 # ---------- Landmark Detection ----------
 def find_landmarks(img_rgb, face_rect):
     ih, iw = img_rgb.shape[:2]
-    results = face_mesh.process(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
+    # ใช้ FaceMesh ใน context manager เพื่อรองรับ Streamlit Cloud
+    with mp.solutions.face_mesh.FaceMesh(
+        static_image_mode=True,
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.5
+    ) as face_mesh:
+        results = face_mesh.process(cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB))
     if results.multi_face_landmarks:
         lm = results.multi_face_landmarks[0].landmark
         tr = (int(lm[10].x*iw), int(lm[10].y*ih))     # Hairline
