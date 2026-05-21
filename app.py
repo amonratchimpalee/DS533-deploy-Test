@@ -183,8 +183,9 @@ def predict_face_shape(img_pil):
 
     # ── MediaPipe Face Landmarker (Tasks API) ──
     from mediapipe.tasks.python import vision as mp_vision
-    mp_image = mp_vision.Image(image_format=mp_vision.ImageFormat.SRGB, data=img_rgb)
-    results  = face_mesh.detect(mp_image)
+    img_rgb_c = np.ascontiguousarray(img_rgb.astype(np.uint8))
+    mp_image  = mp_vision.Image(image_format=mp_vision.ImageFormat.SRGB, data=img_rgb_c)
+    results   = face_mesh.detect(mp_image)
 
     if results.face_landmarks:
         face_detected = True
