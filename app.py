@@ -8,7 +8,9 @@ import os
 from PIL import Image
 import gdown
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
-import mediapipe as mp
+
+# ---------- Mediapipe Import แบบเวอร์ชันใหม่ ----------
+from mediapipe.python.solutions import face_mesh as mp_face_mesh
 
 # ---------- Model preprocessing ----------
 @keras.saving.register_keras_serializable()
@@ -48,9 +50,6 @@ shape_info = {
                'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
 }
 
-# ---------- Mediapipe setup ----------
-mp_face_mesh = mp.solutions.face_mesh
-
 # ---------- Streamlit Page ----------
 st.set_page_config(page_title="Face Shape AI ✨", page_icon="✨", layout="centered")
 st.markdown("""
@@ -78,15 +77,11 @@ def find_landmarks(img_rgb, face_rect):
     if results.multi_face_landmarks:
         lm = results.multi_face_landmarks[0].landmark
 
-        # trichion (บน midline)
+        # Landmark trichion / gnathion / zygion
         tr_x = int(lm[10].x * iw)
         tr_y = int(lm[10].y * ih)
-
-        # gnathion (คาง)
         gn_x = int(lm[152].x * iw)
         gn_y = int(lm[152].y * ih)
-
-        # zygion ซ้าย/ขวา (จุดโหนกแก้ม)
         zy_l_x = int(lm[234].x * iw)
         zy_l_y = int(lm[234].y * ih)
         zy_r_x = int(lm[454].x * iw)
@@ -158,12 +153,6 @@ def predict_face_shape(img_pil):
             ratiog = 1.0
 
         score = max(0.0, min((1 - abs(ratiog - 1.6) / 1.6) * 100, 100))
-        label = f"Facial Index: {ratiog:.2f}"
-        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
-        lx, ly = x, max(y - 12, th + 4)
-        cv2.rectangle(img_out, (lx-2, ly-th-4), (lx+tw+4, ly+4), (0,0,0), -1)
-        cv2.putText(img_out, label, (lx, ly),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, c_bgr, 1, cv2.LINE_AA)
 
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
@@ -190,16 +179,15 @@ if uploaded_file:
             ratio_str = f"{ratiog:.2f}"
             score_str = f"{score:.0f}"
 
-            if ratiog >= 1.55 and ratiog <= 1.65:
-                fi_label = "Normal (≈ 1.6)"
-            elif ratiog > 1.65:
-                fi_label = "Long face (> 1.6)"
-            else:
-                fi_label = "Short face (< 1.6)"
+            st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
+            <div style="font-size: 2rem;">{emoji} {face_shape}</div>
+            <div>{desc}</div>
+            <div>Confidence: {conf_str}%</div>
+            <div>Facial Index: {ratio_str}</div>
+            <div>Score near Phi: {score_str}%</div>
+            <div>Suggested Hair: {hair}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # HTML Card Rendering (เหมือนเดิม)
-            card_html = f"<div class='card'>...</div>"
-            components.html(card_html, height=510, scrolling=False)
-
-st.markdown("<div class='footer'>Powered by <b>4 angie</b> · อ้างอิง: Saraswathi (2007) Eur J Anat 11(3):177-180</div>",
-            unsafe_allow_html=True)
+st.markdown("<div style='font-size:0.7rem; color:gray'>Powered by 4 angie · Saraswathi (2007) Eur J Anat 11(3):177-180</div>", unsafe_allow_html=True)
