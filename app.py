@@ -7,6 +7,7 @@ import keras
 import os
 from PIL import Image
 import gdown
+import dlib
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 @keras.saving.register_keras_serializable()
@@ -17,8 +18,21 @@ def preprocess(x):
 MODEL_URL   = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
 MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
+LANDMARK_URL   = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
+LANDMARK_LOCAL = "shape_predictor_68_face_landmarks.dat"
+
+def ensure_landmark_model():
+    if not os.path.exists(LANDMARK_LOCAL):
+        import urllib.request, bz2
+        bz2_path = LANDMARK_LOCAL + ".bz2"
+        urllib.request.urlretrieve(LANDMARK_URL, bz2_path)
+        with bz2.open(bz2_path, "rb") as f_in, open(LANDMARK_LOCAL, "wb") as f_out:
+            f_out.write(f_in.read())
+        os.remove(bz2_path)
+
 @st.cache_resource
 def load_models():
+    ensure_landmark_model()
     if not os.path.exists(MODEL_LOCAL):
         gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
     face_model = tf.keras.models.load_model(MODEL_LOCAL, custom_objects={'preprocess': preprocess})
@@ -191,49 +205,45 @@ def predict_face_shape(img_pil):
 
     ratiog, score, face_detected = 0.0, 0.0, False
 
-    # ── วาดกรอบด้วย Haar Cascade ──
-    faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30,30))
-    if len(faces) > 0:
+    # ── dlib 68-point landmark detector ──
+    detector  = dlib.get_frontal_face_detector()
+    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+
+    dets = detector(gray, 1)
+    if len(dets) > 0:
         face_detected = True
-        x, y, w, h = faces[0]
-        c = tuple(shape_info[face_shape]['color'][::-1])
-        cv2.rectangle(img_out, (x,y), (x+w,y+h), c, 3)
-        for pt in [(x+w//2,y),(x+w//2,y+h),(x,y+h//2),(x+w,y+h//2)]:
-            cv2.circle(img_out, pt, 8, c, -1)
-            cv2.circle(img_out, pt, 8, (255,255,255), 2)
+        shape = predictor(gray, dets[0])
+        pts   = np.array([[shape.part(i).x, shape.part(i).y] for i in range(68)])
 
-    # ── คำนวณ Golden Ratio จาก face crop จริง ──
-    if len(faces) > 0:
-        x, y, w, h = faces[0]
-        ih, iw = img.shape[:2]
+        # ── วาดจุด landmark และ convex hull ──
+        c = tuple(int(v) for v in shape_info[face_shape]['color'][::-1])
+        hull = cv2.convexHull(pts.astype(np.int32))
+        cv2.polylines(img_out, [hull], True, c, 2)
+        for pt in pts:
+            cv2.circle(img_out, tuple(pt), 2, c, -1)
 
-        # ขยาย bounding box ขึ้นเพื่อให้รวมหน้าผาก และลงเพื่อรวมคาง
-        pad_top    = int(h * 0.3)
-        pad_bottom = int(h * 0.15)
-        pad_side   = int(w * 0.05)
-        y1 = max(0, y - pad_top)
-        y2 = min(ih, y + h + pad_bottom)
-        x1 = max(0, x - pad_side)
-        x2 = min(iw, x + w + pad_side)
+        # ── คำนวณ Golden Ratio ตาม PMC3530317 ──
+        # Gnathion (gn)  = ปลายคาง        → landmark 8
+        # Zygion ซ้าย    = โหนกแก้มซ้าย  → landmark 1
+        # Zygion ขวา     = โหนกแก้มขวา   → landmark 15
+        # Trichion (tr)  = ไรผม (ไม่มีใน dlib 68pt)
+        #   → extrapolate: brow_top + (eye_to_chin × 0.43)
+        gn_y   = pts[8][1]
+        brow_y = min(pts[19][1], pts[24][1])
+        tr_y   = brow_y - int((gn_y - brow_y) * 0.43)
 
-        face_crop = img[y1:y2, x1:x2]
+        face_height = gn_y - tr_y
+        face_width  = abs(pts[1][0] - pts[15][0])
+        ratiog = face_height / face_width if face_width > 0 else 0
+        score  = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
-        # หาขอบใบหน้าจริงด้วย skin detection ใน YCrCb
-        ycrcb     = cv2.cvtColor(face_crop, cv2.COLOR_RGB2YCrCb)
-        skin_mask = cv2.inRange(ycrcb, (0, 133, 77), (255, 173, 127))
-        skin_mask = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE,
-                                     np.ones((7,7), np.uint8))
-        contours, _ = cv2.findContours(skin_mask, cv2.RETR_EXTERNAL,
-                                        cv2.CHAIN_APPROX_SIMPLE)
-
-        if contours:
-            largest = max(contours, key=cv2.contourArea)
-            bx, by, bw, bh = cv2.boundingRect(largest)
-            ratiog = bh / bw if bw > 0 else (y2-y1)/(x2-x1)
-        else:
-            ratiog = (y2 - y1) / (x2 - x1)
-
-        score = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
+        # ── วาดเส้นวัดบนภาพ ──
+        cx = (pts[1][0] + pts[15][0]) // 2
+        cv2.line(img_out, (cx, tr_y), (cx, gn_y), c, 2)
+        cv2.line(img_out, tuple(pts[1]), tuple(pts[15]), c, 2)
+        for dot in [(cx, tr_y), (cx, gn_y), tuple(pts[1]), tuple(pts[15])]:
+            cv2.circle(img_out, dot, 6, c, -1)
+            cv2.circle(img_out, dot, 6, (255,255,255), 1)
 
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
@@ -315,4 +325,4 @@ if uploaded_file:
             )
             components.html(card_html, height=470, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by <b> 4 angie</b></div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Powered by <b>InceptionResNetV2</b> · <b>OpenCV</b></div>", unsafe_allow_html=True)
