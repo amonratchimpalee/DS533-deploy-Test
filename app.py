@@ -29,19 +29,19 @@ classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
 
 shape_info = {
     'Oval':   {'emoji':'🥚','color':[218,165,32], 'gradient':'linear-gradient(135deg,#f7c948,#ffe08a)','accent':'#ffe08a',
-               'desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม',
+               'desc':'ใบหน้ารูปไข่ ',
                'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
     'Square': {'emoji':'⬛','color':[210,140,0],  'gradient':'linear-gradient(135deg,#d48c00,#f5c842)','accent':'#f5c842',
-               'desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน',
+               'desc':'ใบหน้าเหลี่ยม ',
                'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ'},
     'Round':  {'emoji':'⭕','color':[232,120,0],  'gradient':'linear-gradient(135deg,#e87800,#ffc13b)','accent':'#ffc13b',
-               'desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น',
+               'desc':'ใบหน้ากลม ',
                'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs'},
     'Heart':  {'emoji':'❤️','color':[200,150,0],  'gradient':'linear-gradient(135deg,#c89600,#fada5e)','accent':'#fada5e',
-               'desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม',
+               'desc':'ใบหน้ารูปหัวใจ',
                'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs'},
     'Oblong': {'emoji':'📏','color':[180,120,0],  'gradient':'linear-gradient(135deg,#b47800,#f0b429)','accent':'#f0b429',
-               'desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก',
+               'desc':'ใบหน้ายาว ',
                'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
 }
 
