@@ -7,6 +7,7 @@ import keras
 import os
 from PIL import Image
 import gdown
+import mediapipe as mp
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 @keras.saving.register_keras_serializable()
@@ -28,19 +29,19 @@ def load_models():
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
 
 shape_info = {
-    'Oval':   {'emoji':'🥚','color':[76,175,80],  'gradient':'linear-gradient(135deg,#11998e,#38ef7d)','accent':'#38ef7d',
+    'Oval':   {'emoji':'🥚','color':[218,165,32], 'gradient':'linear-gradient(135deg,#f7c948,#ffe08a)','accent':'#ffe08a',
                'desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม',
                'hair':'ผมสั้นถึงกลาง เช่น blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
-    'Square': {'emoji':'⬛','color':[33,150,243], 'gradient':'linear-gradient(135deg,#2980b9,#6dd5fa)','accent':'#6dd5fa',
+    'Square': {'emoji':'⬛','color':[210,140,0],  'gradient':'linear-gradient(135deg,#d48c00,#f5c842)','accent':'#f5c842',
                'desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน',
                'hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง เช่น beach waves และหน้าม้านุ่มๆ'},
-    'Round':  {'emoji':'⭕','color':[255,152,0],  'gradient':'linear-gradient(135deg,#f7971e,#ffd200)','accent':'#ffd200',
+    'Round':  {'emoji':'⭕','color':[232,120,0],  'gradient':'linear-gradient(135deg,#e87800,#ffc13b)','accent':'#ffc13b',
                'desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น',
                'hair':'ทรงเพิ่มความสูงให้ใบหน้า เช่น textured bob, long layers, แสกข้าง และ blunt bangs'},
-    'Heart':  {'emoji':'❤️','color':[233,30,99],  'gradient':'linear-gradient(135deg,#c94b4b,#e96d8a)','accent':'#ff6b9d',
+    'Heart':  {'emoji':'❤️','color':[200,150,0],  'gradient':'linear-gradient(135deg,#c89600,#fada5e)','accent':'#fada5e',
                'desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม',
                'hair':'ผมยาวระดับไหล่ พร้อมเลเยอร์บริเวณกราม curtain bangs หรือ wispy bangs'},
-    'Oblong': {'emoji':'📏','color':[156,39,176], 'gradient':'linear-gradient(135deg,#834d9b,#d04ed6)','accent':'#d04ed6',
+    'Oblong': {'emoji':'📏','color':[180,120,0],  'gradient':'linear-gradient(135deg,#b47800,#f0b429)','accent':'#f0b429',
                'desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก',
                'hair':'ลอนคลาย, loose curls, layered bob และหน้าม้าปัดข้างหรือ curtain bangs'},
 }
@@ -58,9 +59,9 @@ st.markdown("""
     background: transparent !important;
 }
 [data-testid="stAppViewContainer"] {
-    background: radial-gradient(ellipse 80% 50% at 20% -10%, rgba(120,40,200,.28) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255,100,150,.2) 0%, transparent 60%),
-                #09090f !important;
+    background: radial-gradient(ellipse 80% 50% at 20% -10%, rgba(200,130,0,.22) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 110%, rgba(180,80,0,.18) 0%, transparent 60%),
+                #0d0a04 !important;
     min-height: 100vh;
 }
 [data-testid="stHeader"]        { background: transparent !important; }
@@ -80,7 +81,7 @@ html, body, [class*="css"], [data-testid], p, span, div, label, button {
     font-family: 'Playfair Display', serif !important;
     font-size: clamp(2rem, 6vw, 3.2rem);
     font-weight: 900 !important;
-    background: linear-gradient(135deg, #fff 0%, #ddb4f8 45%, #f5a623 100%);
+    background: linear-gradient(135deg, #fff 0%, #ffe8a0 45%, #e8860a 100%);
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -97,7 +98,7 @@ html, body, [class*="css"], [data-testid], p, span, div, label, button {
 }
 .divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), rgba(245,166,35,.4), rgba(255,255,255,.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), rgba(220,150,20,.6), rgba(255,255,255,.08), transparent);
     margin: 0 0 2rem;
 }
 
@@ -110,8 +111,8 @@ html, body, [class*="css"], [data-testid], p, span, div, label, button {
 }
 [data-testid="stFileUploaderDropzone"]:hover,
 [data-testid="stFileUploader"] section:hover {
-    border-color: rgba(245,166,35,.5) !important;
-    background: rgba(245,166,35,.04) !important;
+    border-color: rgba(220,150,20,.6) !important;
+    background: rgba(220,150,20,.05) !important;
 }
 [data-testid="stFileUploaderDropzoneInstructions"],
 [data-testid="stFileUploaderDropzoneInstructions"] * {
@@ -159,7 +160,7 @@ html, body, [class*="css"], [data-testid], p, span, div, label, button {
     -webkit-text-fill-color: rgba(255,255,255,.15) !important;
     letter-spacing: .06em;
 }
-.footer b { color: rgba(245,166,35,.45) !important; -webkit-text-fill-color: rgba(245,166,35,.45) !important; }
+.footer b { color: rgba(220,160,20,.6) !important; -webkit-text-fill-color: rgba(220,160,20,.6) !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,6 +191,8 @@ def predict_face_shape(img_pil):
     confidence  = float(pred[0][idx]) * 100
 
     ratiog, score, face_detected = 0.0, 0.0, False
+
+    # ── วาดกรอบด้วย Haar Cascade ──
     faces = face_cascade.detectMultiScale(gray, 1.1, 5, minSize=(30,30))
     if len(faces) > 0:
         face_detected = True
@@ -199,8 +202,22 @@ def predict_face_shape(img_pil):
         for pt in [(x+w//2,y),(x+w//2,y+h),(x,y+h//2),(x+w,y+h//2)]:
             cv2.circle(img_out, pt, 8, c, -1)
             cv2.circle(img_out, pt, 8, (255,255,255), 2)
-        ratiog = h / w if w > 0 else 0
-        score  = max(0, min((1 - abs(ratiog-1.618)/1.618)*100, 100))
+
+    # ── คำนวณ Golden Ratio จาก MediaPipe Face Landmark ──
+    mp_face_mesh = mp.solutions.face_mesh
+    with mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1,
+                                refine_landmarks=True) as mesh:
+        results = mesh.process(img)  # RGB
+        if results.multi_face_landmarks:
+            face_detected = True
+            lm = results.multi_face_landmarks[0].landmark
+            ih, iw = img.shape[:2]
+
+            # จุด 10=หน้าผาก, 152=คาง, 234=แก้มซ้าย, 454=แก้มขวา
+            face_h = abs(lm[10].y - lm[152].y) * ih
+            face_w = abs(lm[234].x - lm[454].x) * iw
+            ratiog = face_h / face_w if face_w > 0 else 0
+            score  = max(0, min((1 - abs(ratiog - 1.618) / 1.618) * 100, 100))
 
     return face_shape, confidence, ratiog, score, img_out, face_detected
 
