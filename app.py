@@ -90,7 +90,10 @@ st.markdown("""
 [data-testid="stHeader"],[data-testid="stToolbar"]{background:transparent!important}
 [data-testid="stDecoration"]{display:none!important}
 .main .block-container{padding-top:2.5rem!important;max-width:780px}
-html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM Sans',sans-serif!important;color:rgba(255,255,255,.85)}
+html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-serif!important;color:rgba(255,255,255,.85)}
+[data-testid="stFileUploader"] small, [data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] span, [data-testid="stFileUploader"] div{
+    color:rgba(255,255,255,.85)!important;-webkit-text-fill-color:rgba(255,255,255,.85)!important}
 
 .hero-wrap{text-align:center;margin-bottom:1.8rem}
 .hero-title{font-family:'Playfair Display',serif!important;font-size:clamp(2rem,6vw,3.2rem);font-weight:900!important;
@@ -112,10 +115,16 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
 [data-testid="stFileUploader"] section:hover{
     border-color:rgba(220,150,20,.6)!important;
     background:rgba(220,150,20,.05)!important}
-[data-testid="stFileUploaderDropzoneInstructions"],[data-testid="stFileUploaderDropzoneInstructions"] *{
+[data-testid="stFileUploaderDropzoneInstructions"]{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-[data-testid="stFileUploaderFileName"],[data-testid="stFileUploaderFileName"] *{
-    color:rgba(255,255,255,.9)!important;-webkit-text-fill-color:rgba(255,255,255,.9)!important;font-size:.9rem!important}
+[data-testid="stFileUploaderDropzoneInstructions"] span,
+[data-testid="stFileUploaderDropzoneInstructions"] p{
+    color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
+[data-testid="stFileUploader"] section [data-testid="stMarkdownContainer"],
+[data-testid="stFileUploader"] section [data-testid="stMarkdownContainer"] *,
+[data-testid="stFileUploader"] section li,
+[data-testid="stFileUploader"] section li *{
+    color:rgba(255,255,255,.9)!important;-webkit-text-fill-color:rgba(255,255,255,.9)!important}
 [data-testid="stFileUploader"] section button{
     background:rgba(255,255,255,.08)!important;
     border:1px solid rgba(255,255,255,.2)!important;
