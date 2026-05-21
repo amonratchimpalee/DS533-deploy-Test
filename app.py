@@ -120,11 +120,9 @@ html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-seri
 [data-testid="stFileUploaderDropzoneInstructions"] span,
 [data-testid="stFileUploaderDropzoneInstructions"] p{
     color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-[data-testid="stFileUploader"] section [data-testid="stMarkdownContainer"],
-[data-testid="stFileUploader"] section [data-testid="stMarkdownContainer"] *,
-[data-testid="stFileUploader"] section li,
-[data-testid="stFileUploader"] section li *{
-    color:rgba(255,255,255,.9)!important;-webkit-text-fill-color:rgba(255,255,255,.9)!important}
+[data-testid="stFileChipName"]{
+    color:rgba(255,255,255,.9)!important;
+    -webkit-text-fill-color:rgba(255,255,255,.9)!important}
 [data-testid="stFileUploader"] section button{
     background:rgba(255,255,255,.08)!important;
     border:1px solid rgba(255,255,255,.2)!important;
