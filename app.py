@@ -6,27 +6,35 @@ import mediapipe as mp
 import os
 from PIL import Image
 import gdown
+from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
+
+# -----------------------------
+# Register custom preprocess function (required for model deserialization)
+# -----------------------------
+@tf.keras.saving.register_keras_serializable()
+def preprocess(x):
+    x = tf.cast(x, tf.float32)
+    return preprocess_input(x)
 
 # -----------------------------
 # Google Drive Model URL
 # -----------------------------
-MODEL_URL = "https://drive.google.com/uc?id=1-JNL73G3fSpJZuCPEfTjSdXaXOpHtI6h"
-MODEL_LOCAL = "best_inceptionresnetv2_face_shape.keras"
-
-# -----------------------------
-# Download model if not exists
-# -----------------------------
-if not os.path.exists(MODEL_LOCAL):
-    gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
+MODEL_URL = "https://drive.google.com/uc?id=1p3veX7I7_6WBM97jOSfQpSGcxwIuijD1"
+MODEL_LOCAL = "best_inceptionresnetv2_face_shape_fixed.keras"
 
 # -----------------------------
 # Caching model load
 # -----------------------------
 @st.cache_resource
-def load_model(path):
-    return tf.keras.models.load_model(path)
+def load_model():
+    if not os.path.exists(MODEL_LOCAL):
+        gdown.download(MODEL_URL, MODEL_LOCAL, quiet=False)
+    return tf.keras.models.load_model(
+        MODEL_LOCAL,
+        custom_objects={'preprocess': preprocess}
+    )
 
-face_shape_model = load_model(MODEL_LOCAL)
+face_shape_model = load_model()
 
 # -----------------------------
 # MediaPipe setup
@@ -56,7 +64,6 @@ st.markdown("""
 body {background: linear-gradient(to right, #e0f7fa, #fff9c4);}
 h1 {text-align:center; color:#004d40;}
 .stButton>button {background-color:#00796b; color:white; border-radius:8px; font-weight:bold;}
-.stImage>div>figcaption {text-align:center; font-style:italic; color:#004d40;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -70,7 +77,7 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 def predict_face_shape(img_pil):
     img = np.array(img_pil.convert("RGB"))
     img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    img_landmarks = img.copy()  # RGB copy for drawing
+    img_landmarks = img.copy()
 
     # ----- Model prediction -----
     img_resized = cv2.resize(img_bgr, (299, 299))
@@ -91,14 +98,13 @@ def predict_face_shape(img_pil):
         refine_landmarks=True,
         min_detection_confidence=0.5
     ) as face_mesh:
-        results = face_mesh.process(img)  # RGB input
+        results = face_mesh.process(img)
 
         if results.multi_face_landmarks:
             face_detected = True
             h, w = img.shape[:2]
 
             for face_landmarks in results.multi_face_landmarks:
-                # Draw landmarks
                 mp_drawing.draw_landmarks(
                     image=img_landmarks,
                     landmark_list=face_landmarks,
@@ -114,9 +120,6 @@ def predict_face_shape(img_pil):
                     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style()
                 )
 
-                # Golden ratio calculation
-                # Forehead top: landmark 10, Chin: landmark 152
-                # Left face: landmark 234, Right face: landmark 454
                 lm = face_landmarks.landmark
                 forehead_y = lm[10].y * h
                 chin_y = lm[152].y * h
@@ -134,10 +137,6 @@ def predict_face_shape(img_pil):
         return "No face detected", None
 
     recommend = hairstyle_recommendations[face_shape]
-
-    # Save landmark image
-    fname = f"{SAVE_DIR}/landmarks_{np.random.randint(0, 9999)}.png"
-    cv2.imwrite(fname, cv2.cvtColor(img_landmarks, cv2.COLOR_RGB2BGR))
 
     result = (
         f"Face Shape: {face_shape} ({confidence:.2f}%)\n"
