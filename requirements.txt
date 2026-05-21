@@ -1,7 +1,8 @@
 streamlit
-opencv-python
-tensorflow
-keras
+opencv-python-headless
+tensorflow==2.15.0
+keras==2.15.0
 pillow
 gdown
+protobuf==3.20.3
 mediapipe==0.10.9
