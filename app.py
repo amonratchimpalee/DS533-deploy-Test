@@ -104,6 +104,9 @@ html,body,[class*="css"],[data-testid],p,span,div,label,button{font-family:'DM S
     color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
 [data-testid="stFileUploader"] button{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;
     border-radius:8px!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+[data-testid="stFileUploader"] section{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:.75rem 1rem!important}
+[data-testid="stFileUploaderDropzoneInstructions"]{flex:1!important}
+[data-testid="stFileUploader"] section > button{margin-left:auto!important;flex-shrink:0!important}
 
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
