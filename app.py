@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -72,7 +73,7 @@ shape_info = {
 # ── Page config ──
 st.set_page_config(page_title="Face Shape AI ✨", page_icon="✨", layout="centered")
 
-st.markdown("""
+GLOBAL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -82,37 +83,20 @@ st.markdown("""
     background: #0a0a0f;
     background-image:
         radial-gradient(ellipse 80% 50% at 20% -10%, rgba(120, 40, 200, 0.25) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255, 100, 150, 0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 60% at 50% 50%, rgba(20, 100, 200, 0.08) 0%, transparent 70%);
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(255, 100, 150, 0.18) 0%, transparent 60%);
     min-height: 100vh;
 }
-
 [data-testid="stHeader"] { background: transparent; }
 [data-testid="stMainBlockContainer"] { padding-top: 2rem; }
 
-/* Noise overlay */
-[data-testid="stAppViewContainer"]::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
-}
-
-/* Typography */
-h1, h2, h3, p, span, div {
+h1, h2, h3, p, span, div, label {
     font-family: 'DM Sans', sans-serif !important;
 }
-
-/* Hero title */
 .hero-title {
     font-family: 'Playfair Display', serif !important;
-    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
     font-weight: 900;
     text-align: center;
-    line-height: 1.1;
     background: linear-gradient(135deg, #fff 0%, #e8b4f0 40%, #f5a623 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -120,160 +104,43 @@ h1, h2, h3, p, span, div {
     margin-bottom: 0.3rem;
     letter-spacing: -0.02em;
 }
-
 .hero-sub {
     text-align: center;
-    color: rgba(255,255,255,0.4);
-    font-size: 0.95rem;
+    color: rgba(255,255,255,0.35);
+    font-size: 0.9rem;
     font-weight: 300;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 2rem;
 }
-
-/* Divider */
 .fancy-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(245,166,35,0.4), rgba(255,255,255,0.15), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), rgba(245,166,35,0.35), rgba(255,255,255,0.12), transparent);
     margin: 1.5rem 0 2rem;
 }
 
-/* Upload zone */
 [data-testid="stFileUploader"] {
     background: rgba(255,255,255,0.03) !important;
     border: 1.5px dashed rgba(255,255,255,0.15) !important;
     border-radius: 20px !important;
-    padding: 1rem !important;
     transition: all 0.3s ease;
 }
 [data-testid="stFileUploader"]:hover {
-    border-color: rgba(245,166,35,0.5) !important;
+    border-color: rgba(245,166,35,0.45) !important;
     background: rgba(245,166,35,0.04) !important;
 }
-
-/* Result card */
-.result-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 24px;
-    padding: 1.8rem;
-    backdrop-filter: blur(20px);
-    position: relative;
-    overflow: hidden;
-}
-.result-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 24px;
-    padding: 1px;
-    background: var(--card-gradient);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0.6;
+[data-testid="stFileUploaderDropzoneInstructions"] p,
+[data-testid="stFileUploaderDropzoneInstructions"] span {
+    color: rgba(255,255,255,0.45) !important;
 }
 
-.shape-name {
-    font-family: 'Playfair Display', serif !important;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0.3rem 0;
-}
-.shape-emoji { font-size: 2.5rem; }
-.shape-desc {
-    color: rgba(255,255,255,0.5);
-    font-size: 0.88rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
+.stImage img { border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); }
 
-/* Metric cards */
-.metric-row {
-    display: flex;
-    gap: 0.75rem;
-    margin: 1.2rem 0;
+[data-testid="stAlert"] {
+    background: rgba(233,30,99,0.1) !important;
+    border: 1px solid rgba(233,30,99,0.3) !important;
+    border-radius: 14px !important;
+    color: #ff6b9d !important;
 }
-.metric-box {
-    flex: 1;
-    background: rgba(255,255,255,0.05);
-    border-radius: 14px;
-    padding: 0.9rem 0.6rem;
-    text-align: center;
-    border: 1px solid rgba(255,255,255,0.07);
-}
-.metric-icon { font-size: 1.1rem; margin-bottom: 0.2rem; }
-.metric-val {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-}
-.metric-label {
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.35);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 0.2rem;
-}
-
-/* Hair tip box */
-.hair-box {
-    background: rgba(255,255,255,0.05);
-    border-left: 3px solid var(--accent-color);
-    border-radius: 0 12px 12px 0;
-    padding: 1rem 1.2rem;
-    margin-top: 0.5rem;
-}
-.hair-box-title {
-    color: var(--accent-color);
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.4rem;
-}
-.hair-box-text {
-    color: rgba(255,255,255,0.75);
-    font-size: 0.9rem;
-    line-height: 1.6;
-}
-
-/* Confidence bar */
-.conf-bar-wrap {
-    background: rgba(255,255,255,0.06);
-    border-radius: 99px;
-    height: 6px;
-    margin-top: 0.5rem;
-    overflow: hidden;
-}
-.conf-bar-fill {
-    height: 100%;
-    border-radius: 99px;
-    background: var(--card-gradient);
-    transition: width 1s cubic-bezier(.4,0,.2,1);
-}
-
-/* Image frame */
-.img-frame {
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-
-/* Hide streamlit metric default */
-[data-testid="stMetric"] {
-    background: rgba(255,255,255,0.04);
-    border-radius: 14px;
-    padding: 0.8rem 1rem !important;
-    border: 1px solid rgba(255,255,255,0.07);
-}
-[data-testid="stMetricLabel"] { color: rgba(255,255,255,0.4) !important; font-size:0.75rem !important; }
-[data-testid="stMetricValue"] { color: #fff !important; font-size:1.4rem !important; font-weight:700 !important; }
-
-/* Footer */
 .footer {
     text-align: center;
     color: rgba(255,255,255,0.15);
@@ -281,20 +148,9 @@ h1, h2, h3, p, span, div {
     padding: 2.5rem 0 1rem;
     letter-spacing: 0.05em;
 }
-.footer span { color: rgba(245,166,35,0.5); }
-
-/* Error */
-[data-testid="stAlert"] {
-    background: rgba(233,30,99,0.1) !important;
-    border: 1px solid rgba(233,30,99,0.3) !important;
-    border-radius: 14px !important;
-    color: #ff6b9d !important;
-}
-
-/* Spinner */
-[data-testid="stSpinner"] { color: rgba(255,255,255,0.5) !important; }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ── Header ──
 st.markdown("<div class='hero-title'>✨ Face Shape AI</div>", unsafe_allow_html=True)
@@ -304,7 +160,6 @@ st.markdown("<div class='fancy-divider'></div>", unsafe_allow_html=True)
 face_shape_model, face_cascade = load_models()
 
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
-
 os.makedirs("saved_results", exist_ok=True)
 
 def predict_face_shape(img_pil):
@@ -343,9 +198,7 @@ if uploaded_file:
     with col1:
         with st.spinner("🔍 กำลังวิเคราะห์..."):
             face_shape, confidence, ratiog, score, img_out, face_detected = predict_face_shape(img_pil)
-        st.markdown("<div class='img-frame'>", unsafe_allow_html=True)
         st.image(img_out, use_column_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         if not face_detected:
@@ -354,49 +207,157 @@ if uploaded_file:
             info = shape_info[face_shape]
             gradient = info['gradient']
             accent   = info['accent']
+            emoji    = info['emoji']
+            desc     = info['desc']
+            hair     = info['hair']
+            conf_str = f"{confidence:.1f}"
+            ratio_str = f"{ratiog:.2f}"
+            score_str = f"{score:.0f}"
 
-            st.markdown(f"""
-            <style>
-                :root {{
-                    --card-gradient: {gradient};
-                    --accent-color: {accent};
-                }}
-            </style>
-            <div class="result-card">
-                <div class="shape-emoji">{info['emoji']}</div>
-                <div class="shape-name">{face_shape}</div>
-                <div class="shape-desc">{info['desc']}</div>
+            card_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ background: transparent; font-family: 'DM Sans', sans-serif; }}
 
-                <div style="font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;">ความมั่นใจ</div>
-                <div style="display:flex;align-items:center;gap:.8rem;">
-                    <div style="font-size:1.6rem;font-weight:700;color:#fff;">{confidence:.1f}%</div>
-                </div>
-                <div class="conf-bar-wrap">
-                    <div class="conf-bar-fill" style="width:{confidence:.1f}%"></div>
-                </div>
+  .card {{
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 1.6rem;
+    position: relative;
+    overflow: hidden;
+  }}
+  .card::before {{
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 1.5px;
+    background: {gradient};
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.7;
+    pointer-events: none;
+  }}
 
-                <div class="metric-row" style="margin-top:1.2rem;">
-                    <div class="metric-box">
-                        <div class="metric-icon">📐</div>
-                        <div class="metric-val">{ratiog:.2f}</div>
-                        <div class="metric-label">Golden Ratio</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-icon">⭐</div>
-                        <div class="metric-val">{score:.0f}%</div>
-                        <div class="metric-label">คะแนน</div>
-                    </div>
-                </div>
+  .emoji {{ font-size: 2.2rem; margin-bottom: .3rem; }}
+  .shape-name {{
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: .3rem;
+  }}
+  .desc {{
+    color: rgba(255,255,255,0.45);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }}
 
-                <div class="hair-box">
-                    <div class="hair-box-title">💇 ทรงผมที่แนะนำ</div>
-                    <div class="hair-box-text">{info['hair']}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+  .conf-label {{
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .25rem;
+  }}
+  .conf-value {{
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .4rem;
+  }}
+  .bar-bg {{
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    height: 5px;
+    overflow: hidden;
+    margin-bottom: 1.1rem;
+  }}
+  .bar-fill {{
+    height: 100%;
+    border-radius: 99px;
+    background: {gradient};
+    width: {conf_str}%;
+  }}
 
-st.markdown("""
-<div class="footer">
-    Powered by <span>InceptionResNetV2</span> + <span>OpenCV</span>
+  .metrics {{
+    display: flex;
+    gap: .6rem;
+    margin-bottom: 1.1rem;
+  }}
+  .metric {{
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: .85rem .5rem;
+    text-align: center;
+  }}
+  .m-icon {{ font-size: 1rem; margin-bottom: .15rem; }}
+  .m-val {{ font-size: 1.35rem; font-weight: 700; color: #fff; line-height: 1; }}
+  .m-label {{ font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: .06em; margin-top: .2rem; }}
+
+  .hair-box {{
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid {accent};
+    border-radius: 0 12px 12px 0;
+    padding: .9rem 1rem;
+  }}
+  .hair-title {{
+    color: {accent};
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: .35rem;
+  }}
+  .hair-text {{
+    color: rgba(255,255,255,0.7);
+    font-size: 0.87rem;
+    line-height: 1.6;
+  }}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="emoji">{emoji}</div>
+  <div class="shape-name">{face_shape}</div>
+  <div class="desc">{desc}</div>
+
+  <div class="conf-label">ความมั่นใจ</div>
+  <div class="conf-value">{conf_str}%</div>
+  <div class="bar-bg"><div class="bar-fill"></div></div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="m-icon">📐</div>
+      <div class="m-val">{ratio_str}</div>
+      <div class="m-label">Golden Ratio</div>
+    </div>
+    <div class="metric">
+      <div class="m-icon">⭐</div>
+      <div class="m-val">{score_str}%</div>
+      <div class="m-label">คะแนน</div>
+    </div>
+  </div>
+
+  <div class="hair-box">
+    <div class="hair-title">💇 ทรงผมที่แนะนำ</div>
+    <div class="hair-text">{hair}</div>
+  </div>
 </div>
-""", unsafe_allow_html=True)
+</body>
+</html>
+"""
+            components.html(card_html, height=480, scrolling=False)
+
+st.markdown("<div class='footer'>Powered by InceptionResNetV2 · OpenCV</div>", unsafe_allow_html=True)
