@@ -165,14 +165,14 @@ if not st.session_state.consent_given:
   <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.7;margin-bottom:.5rem'>
     ภาพถ่ายใบหน้าของท่านเป็น <b style='color:rgba(255,200,80,.8)'>ข้อมูลอ่อนไหว</b>
     ตาม PDPA มาตรา 26 ประมวลผลในหน่วยความจำชั่วคราวเท่านั้น<br>
-    ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; ✓ ลบออกหลังวิเคราะห์
+    ✓ ไม่บันทึกภาพ &nbsp;·&nbsp; ✓ ไม่แชร์ข้อมูล &nbsp;·&nbsp; 
   </p>
 
   <p style='color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;
-     margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์การประมวลผล</p>
+     margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์ของการประมวลผล</p>
   <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.9'>
     1️⃣ <b>วิเคราะห์รูปทรงใบหน้า</b> — จำแนก 5 ประเภท (Oval, Square, Round, Heart, Oblong)
-    ด้วยโมเดล AI InceptionResNetV2<br>
+    ด้วยโมเดล RestNet50V2<br>
     2️⃣ <b>ตรวจจับจุดอ้างอิงใบหน้า</b> — ใช้ MediaPipe คำนวณ Facial Index
     และ Golden Ratio Score<br>
     3️⃣ <b>แสดงผลคำแนะนำ</b> — ทรงผมและแว่นตาที่เหมาะกับรูปทรงใบหน้าของท่าน
@@ -184,7 +184,9 @@ if not st.session_state.consent_given:
             "ฉันได้อ่านและยินยอมให้ประมวลผลภาพใบหน้าตามนโยบายความเป็นส่วนตัว"
         )
         if consent:
-            if st.button("ยืนยันและดำเนินการต่อ →", type="primary"):
+            col_l, col_c, col_r = st.columns([1, 2, 1])
+with col_c:
+    if st.button("ยืนยันและดำเนินการต่อ →", type="primary", use_container_width=True):
                 st.session_state.consent_given = True
                 st.rerun()
     st.stop()
