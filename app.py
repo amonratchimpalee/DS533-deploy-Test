@@ -152,10 +152,10 @@ def draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, color_bgr):
 
     # landmark dots + labels
     landmarks = [
-        (tr,   "A · trichion"),
-        (gn,   "B · gnathion"),
-        (zy_l, "C · zygion"),
-        (zy_r, "D · zygion"),
+        (tr,   "A: trichion"),
+        (gn,   "B: gnathion"),
+        (zy_l, "C: zygion L"),
+        (zy_r, "D: zygion R"),
     ]
     for pt, lbl in landmarks:
         cv2.circle(img_out, pt, 7, c,  -1, cv2.LINE_AA)
@@ -193,10 +193,13 @@ def predict_face_shape(img_pil):
         c_bgr = tuple(shape_info[face_shape]['color'][::-1])
 
         # ── ดึง landmark 4 จุดตาม Saraswathi (2007) ──
-        tr   = get_pixel(lm, LANDMARK_TRICHION,  ih, iw)   # hairline (top)
+        tr   = get_pixel(lm, LANDMARK_TRICHION,  ih, iw)   # forehead top (~hairline)
         gn   = get_pixel(lm, LANDMARK_GNATHION,  ih, iw)   # chin bottom
         zy_l = get_pixel(lm, LANDMARK_ZY_LEFT,   ih, iw)   # left cheekbone
         zy_r = get_pixel(lm, LANDMARK_ZY_RIGHT,  ih, iw)   # right cheekbone
+        # clamp ให้ tr อยู่ในภาพ
+        tr = (max(0, min(tr[0], iw-1)), max(0, min(tr[1], ih-1)))
+        gn = (max(0, min(gn[0], iw-1)), max(0, min(gn[1], ih-1)))
 
         # ── วาด landmark + เส้นวัด ──
         draw_landmarks_mesh(img_out, tr, gn, zy_l, zy_r, c_bgr)
