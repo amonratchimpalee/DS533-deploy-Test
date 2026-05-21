@@ -360,4 +360,4 @@ if uploaded_file:
 """
             components.html(card_html, height=480, scrolling=False)
 
-st.markdown("<div class='footer'>Powered by InceptionResNetV2 · OpenCV</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Powered by 4 angie · OpenCV</div>", unsafe_allow_html=True)
