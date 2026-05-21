@@ -6,7 +6,7 @@ import keras
 from PIL import Image
 import gdown
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
-import mediapipe as mp  # ใช้เวอร์ชัน PyPI ≥0.10
+import mediapipe as mp  # Mediapipe ≥0.10
 
 # ---------- Model preprocessing ----------
 @keras.saving.register_keras_serializable()
@@ -28,11 +28,11 @@ def load_models():
 # ---------- Face Shape Classes ----------
 classes = ['Heart', 'Oblong', 'Oval', 'Round', 'Square']
 shape_info = {
-    'Oval':   {'emoji':'🥚','color':[218,165,32],'desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม','hair':'ผมสั้นถึงกลาง blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
-    'Square': {'emoji':'⬛','color':[210,140,0],'desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน','hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง beach waves, หน้าม้านุ่มๆ'},
-    'Round':  {'emoji':'⭕','color':[232,120,0],'desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น','hair':'ทรงเพิ่มความสูงให้ใบหน้า textured bob, long layers, แสกข้าง, blunt bangs'},
-    'Heart':  {'emoji':'❤️','color':[200,150,0],'desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม','hair':'ผมยาวระดับไหล่ เลเยอร์บริเวณกราม curtain bangs, wispy bangs'},
-    'Oblong': {'emoji':'📏','color':[180,120,0],'desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก','hair':'ลอนคลาย, loose curls, layered bob, หน้าม้าปัดข้างหรือ curtain bangs'},
+    'Oval':   {'emoji':'🥚','desc':'ใบหน้ารูปไข่ — สมดุลที่สุด เหมาะกับทุกทรงผม','hair':'ผมสั้นถึงกลาง blunt bob, shoulder-length, pixie cut, long layers และหน้าม้าปัดข้าง'},
+    'Square': {'emoji':'⬛','desc':'ใบหน้าเหลี่ยม — กรามและหน้าผากกว้างพอกัน','hair':'ผมยาวปานกลางถึงยาว พร้อมไล่เลเยอร์หรือปลายฟุ้ง beach waves, หน้าม้านุ่มๆ'},
+    'Round':  {'emoji':'⭕','desc':'ใบหน้ากลม — แก้มอิ่ม ใบหน้ากว้างและสั้น','hair':'ทรงเพิ่มความสูงให้ใบหน้า textured bob, long layers, แสกข้าง, blunt bangs'},
+    'Heart':  {'emoji':'❤️','desc':'ใบหน้ารูปหัวใจ — หน้าผากกว้าง คางแหลม','hair':'ผมยาวระดับไหล่ เลเยอร์บริเวณกราม curtain bangs, wispy bangs'},
+    'Oblong': {'emoji':'📏','desc':'ใบหน้ายาว — ยาวกว่ากว้างมาก','hair':'ลอนคลาย, loose curls, layered bob, หน้าม้าปัดข้างหรือ curtain bangs'},
 }
 
 # ---------- Streamlit Page ----------
@@ -44,7 +44,7 @@ face_shape_model, face_cascade = load_models()
 uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 
 # ---------- Mediapipe FaceMesh ----------
-face_mesh = mp.solutions.face_mesh.FaceMesh(
+face_mesh = mp.face_mesh.FaceMesh(
     static_image_mode=True,
     max_num_faces=1,
     refine_landmarks=True,
