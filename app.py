@@ -136,6 +136,8 @@ html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-seri
     -webkit-text-fill-color:#fff!important}
 [data-testid="stFileUploaderDropzone"] button~button{
     display:none!important}
+[data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:not([data-testid="stFileUploaderDeleteBtn"]){
+    display:none!important}
 
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
