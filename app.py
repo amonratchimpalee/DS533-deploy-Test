@@ -104,22 +104,42 @@ html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-seri
     text-transform:uppercase;-webkit-text-fill-color:rgba(255,255,255,.3)!important}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(220,150,20,.6),rgba(255,255,255,.08),transparent);margin:0 0 2rem}
 
-/* ซ่อน default file uploader ทั้งหมด */
+/* custom uploader — ซ่อน default UI แต่คง input ไว้ */
 [data-testid="stFileUploader"] label{display:none!important}
-[data-testid="stFileUploader"] section{display:none!important}
+[data-testid="stFileUploader"] section{
+    position:relative!important;
+    background:rgba(255,255,255,.04)!important;
+    border:1.5px dashed rgba(255,255,255,.18)!important;
+    border-radius:18px!important;
+    padding:0!important;
+    min-height:120px!important}
+[data-testid="stFileUploader"] section:hover{
+    border-color:rgba(220,150,20,.6)!important;
+    background:rgba(220,150,20,.05)!important}
+[data-testid="stFileUploaderDropzone"]{
+    position:relative!important;
+    min-height:120px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important}
+[data-testid="stFileUploaderDropzoneInstructions"]{display:none!important}
+[data-testid="stFileUploader"] section button{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    opacity:0!important;
+    cursor:pointer!important;
+    z-index:2!important}
+[data-testid="stFileUploader"] section button~button{display:none!important}
+[data-testid="stFileChipName"],[data-testid="stFileChipName"] *{
+    color:rgba(255,255,255,.9)!important;
+    -webkit-text-fill-color:rgba(255,255,255,.9)!important}
 
-/* custom uploader */
-.upload-area{
-    border:1.5px dashed rgba(255,255,255,.18);
-    border-radius:18px;
-    background:rgba(255,255,255,.04);
-    padding:1.5rem 1.2rem;
-    text-align:center;
-    cursor:pointer;
-    transition:border-color .2s,background .2s}
-.upload-area:hover{
-    border-color:rgba(220,150,20,.6);
-    background:rgba(220,150,20,.05)}
+/* overlay content */
+.upload-overlay{
+    position:absolute;pointer-events:none;z-index:1;
+    text-align:center;width:100%}
 .upload-icon{font-size:1.8rem;margin-bottom:.4rem}
 .upload-title{color:rgba(255,255,255,.7);font-size:.92rem;margin-bottom:.2rem}
 .upload-hint{color:rgba(255,255,255,.3);font-size:.73rem}
@@ -189,11 +209,15 @@ if not st.session_state.consent_given:
     st.stop()
 
 # ---- File Uploader ----
+# วาง overlay ไว้เหนือ uploader
 st.markdown("""
-<div class="upload-area" onclick="document.querySelector('[data-testid=stFileUploader] input[type=file]').click()">
-  <div class="upload-icon">📸</div>
-  <div class="upload-title">คลิกเพื่ออัปโหลดภาพใบหน้า</div>
-  <div class="upload-hint">JPG, JPEG, PNG · ใบหน้าเดียว · หน้าตรง · แสงสว่างเพียงพอ</div>
+<div style="position:relative;pointer-events:none;z-index:1;
+     text-align:center;margin-bottom:-90px;padding:1.5rem 0 .5rem">
+  <div style="font-size:1.8rem;margin-bottom:.4rem">📸</div>
+  <div style="color:rgba(255,255,255,.7);font-size:.92rem;margin-bottom:.2rem">
+    คลิกเพื่ออัปโหลดภาพใบหน้า</div>
+  <div style="color:rgba(255,255,255,.3);font-size:.73rem">
+    JPG, JPEG, PNG · ใบหน้าเดียว · หน้าตรง · แสงสว่างเพียงพอ</div>
 </div>
 """, unsafe_allow_html=True)
 uploaded_file = st.file_uploader("", type=["jpg","jpeg","png"], label_visibility="collapsed")
