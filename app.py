@@ -104,40 +104,25 @@ html,body,[class*="css"],p,span,div,label,button{font-family:'DM Sans',sans-seri
     text-transform:uppercase;-webkit-text-fill-color:rgba(255,255,255,.3)!important}
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(220,150,20,.6),rgba(255,255,255,.08),transparent);margin:0 0 2rem}
 
-[data-testid="stFileUploader"] label,[data-testid="stFileUploader"] label *{
-    color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;font-size:.95rem!important}
-[data-testid="stFileUploader"] section{
-    background:rgba(255,255,255,.04)!important;
-    border:1.5px dashed rgba(255,255,255,.18)!important;
-    border-radius:18px!important;
-    padding:.75rem 1.2rem!important;
-    position:relative!important}
-[data-testid="stFileUploader"] section:hover{
-    border-color:rgba(220,150,20,.6)!important;
-    background:rgba(220,150,20,.05)!important}
-[data-testid="stFileUploaderDropzoneInstructions"]{
-    color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-[data-testid="stFileUploaderDropzoneInstructions"] span,
-[data-testid="stFileUploaderDropzoneInstructions"] p{
-    color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}
-[data-testid="stFileChipName"],
-[data-testid="stFileChipName"] *,
-.st-emotion-cache-1t3cokr{
-    color:rgba(255,255,255,.9)!important;
-    -webkit-text-fill-color:rgba(255,255,255,.9)!important}
-[data-testid="stFileUploader"] section button{
-    background:rgba(255,255,255,.08)!important;
-    border:1px solid rgba(255,255,255,.2)!important;
-    border-radius:8px!important;
-    color:#fff!important;
-    -webkit-text-fill-color:#fff!important}
-[data-testid="stFileUploader"] section button *{
-    color:#fff!important;
-    -webkit-text-fill-color:#fff!important}
-[data-testid="stFileUploaderDropzone"] button~button{
-    display:none!important}
-[data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:not([data-testid="stFileUploaderDeleteBtn"]){
-    display:none!important}
+/* ซ่อน default file uploader ทั้งหมด */
+[data-testid="stFileUploader"] label{display:none!important}
+[data-testid="stFileUploader"] section{display:none!important}
+
+/* custom uploader */
+.upload-area{
+    border:1.5px dashed rgba(255,255,255,.18);
+    border-radius:18px;
+    background:rgba(255,255,255,.04);
+    padding:1.5rem 1.2rem;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s,background .2s}
+.upload-area:hover{
+    border-color:rgba(220,150,20,.6);
+    background:rgba(220,150,20,.05)}
+.upload-icon{font-size:1.8rem;margin-bottom:.4rem}
+.upload-title{color:rgba(255,255,255,.7);font-size:.92rem;margin-bottom:.2rem}
+.upload-hint{color:rgba(255,255,255,.3);font-size:.73rem}
 
 [data-testid="stImage"] img{border-radius:18px!important;border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 20px 60px rgba(0,0,0,.5)!important}
 [data-testid="stSpinner"] *{color:rgba(255,255,255,.5)!important}
@@ -204,14 +189,14 @@ if not st.session_state.consent_given:
     st.stop()
 
 # ---- File Uploader ----
-uploaded_file = st.file_uploader("📸  อัปโหลดภาพใบหน้าของคุณ", type=["jpg","jpeg","png"])
 st.markdown("""
-<div style='font-size:.78rem;color:rgba(255,255,255,.3);margin-top:-.5rem;margin-bottom:1rem;line-height:1.8'>
-  ℹ️ เพื่อผลลัพธ์ที่แม่นยำ: ใช้ภาพ <b style='color:rgba(255,255,255,.5)'>หน้าตรง</b> &nbsp;·&nbsp;
-  แสงสว่างเพียงพอ &nbsp;·&nbsp; ไม่สวมแว่น &nbsp;·&nbsp;
-  มองเห็นใบหน้าครบตั้งแต่หน้าผากถึงคาง
+<div class="upload-area" onclick="document.querySelector('[data-testid=stFileUploader] input[type=file]').click()">
+  <div class="upload-icon">📸</div>
+  <div class="upload-title">คลิกเพื่ออัปโหลดภาพใบหน้า</div>
+  <div class="upload-hint">JPG, JPEG, PNG · ใบหน้าเดียว · หน้าตรง · แสงสว่างเพียงพอ</div>
 </div>
 """, unsafe_allow_html=True)
+uploaded_file = st.file_uploader("", type=["jpg","jpeg","png"], label_visibility="collapsed")
 os.makedirs("saved_results", exist_ok=True)
 
 
