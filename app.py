@@ -178,7 +178,7 @@ CONSENT_HTML = """
      margin-bottom:.4rem;margin-top:.85rem'>วัตถุประสงค์การประมวลผล</p>
   <p style='color:rgba(255,255,255,.45);font-size:.82rem;line-height:1.9'>
     1️⃣ <b>วิเคราะห์รูปทรงใบหน้า</b> — จำแนก 5 ประเภท (Oval, Square, Round, Heart, Oblong)
-    ด้วยโมเดล InceptionResNetV2<br>
+    ด้วยโมเดล mobieNet50v2<br>
     2️⃣ <b>ตรวจจับจุดอ้างอิงใบหน้า</b> — ใช้ MediaPipe คำนวณ Facial Index
     และ Golden Ratio Score<br>
     3️⃣ <b>แสดงผลคำแนะนำ</b> — ทรงผมและแว่นตาที่เหมาะกับรูปทรงใบหน้าของท่าน
